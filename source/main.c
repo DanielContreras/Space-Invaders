@@ -5,17 +5,20 @@
 #include "controller.h"
 
 int main()
-{   
-    unsigned int *gpio = gpioPtr();
+{
+    unsigned int *gpio = gpioPtr();     // Get GPIO base address
     unsigned int input = 0;
     unsigned int oldInput = 0;
-    printf("Created by: Tariq Rahmani, Daniel Contreras, Benjamin Sterling\n");
+    printf("Created by: Tariq Rahmani, Daniel Contreras, Benjamin Sterling, Abdelraheem Ghebari\n");
     printf("Please press a button...\n");
+    // while start is not pressed
     while (oldInput != 4)
     {   
+        // while no input recieved
         while(input == 0)
         {   
             input = read_snes(gpio);
+            // if previous input has button value from (1-12) and new input has a 0 (button release)
             if (input == 0 && oldInput != 0)
             {   
                 switch(oldInput)
