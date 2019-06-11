@@ -51,7 +51,7 @@ The game is played with an SNES controller.
 
 * [**Daniel Contreras**](https://github.com/DanielContreras)
 * [**Tariq Rahmani**](https://github.com/tariqrahmani08)
-* [**Abdelraheem Ghebari**](https://github.com/abudeh123)
+* [**Benjamin Sterling**](https://github.com/bensterling)
 
 ## License
 
