@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-// #include <wiringPi.h>
+#include <wiringPi.h>
 // #include "framebuffer.h"
 // #include "controller.h"
 #include "invader.h"
-#include <time.h>
+//#include <time.h>
 
-void delay(int number_of_seconds);
+//void delay(int number_of_seconds);
 
 int main()
 {
@@ -18,22 +18,20 @@ int main()
     {
         update_world(&game_environment.game_map);
         render_world();
-//        entity_shoot(&game_environment.game_map.player);
-//        move_entity(&game_environment.game_map.player, RIGHT);
         delay(60);
     }
 
     return 0;
 }
 
-void delay(int number_of_seconds)
-{
+//void delay(int number_of_seconds)
+//{
     // Converting time into milli_seconds
-    int milli_seconds = 1000 * number_of_seconds;
+//    int milli_seconds = 1000 * number_of_seconds;
 
     // Stroing start time
-    clock_t start_time = clock();
+//    clock_t start_time = clock();
 
     // looping till required time is not acheived
-    while (clock() < start_time + milli_seconds);
-}
+//    while (clock() < start_time + milli_seconds);
+//}

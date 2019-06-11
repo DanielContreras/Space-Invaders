@@ -1,6 +1,11 @@
 #include "invader.h"
 
 #include <stdio.h>
+#include <wiringPi.h>
+#include "controller.h"
+#include "framebuffer.h"
+#include "GPIO_INIT.h"
+
 
 void init_game(game *game_environment)
 {
@@ -13,7 +18,7 @@ void init_game(game *game_environment)
 void init_map(map *game_map)
 {
     update_map();
-
+    
     init_player(&game_map->player);
     init_pawns(game_map->pawn);
     init_knights(game_map->knight);
@@ -144,6 +149,7 @@ bool intersect_AABB(missile laser, alien enemy)
 void update_world(map *world)
 {
     update_map();
+    poll_input(world);
     update_movement_system(world);
     update_combat_system(world);
     update_collision_system(world);
@@ -188,7 +194,6 @@ void update_movement_system(map *world)
         map_tile[(int)world->pawn[i].x][(int)world->pawn[i].y] = 'P';
     }
 
-
 }
 
 void update_combat_system(map *world)
@@ -203,10 +208,58 @@ void update_collision_system(map *world)
 
 void update_AI_system(map *world)
 {
-
+    
 }
 
 void init_inputs()
 {
-    gpioptr = gpioPtr();
+    gpio = gpioPtr();
+}
+
+void poll_input(map *world)
+{
+    int in = read_snes(gpio);
+    
+    switch (in)
+    {
+        case 1:
+            printf ("You have pressed B\n");
+            entity_shoot(&world->player, UP);
+            break;
+        case 2:
+            printf ("You have pressed Y\n");
+            break;
+        case 3:
+            printf ("You have pressed Select\n");
+            break;
+        case 5:
+            printf ("You have pressed Joy-pad UP\n");
+            break;
+        case 6:
+            printf ("You have pressed Joy-pad DOWN\n");
+            break;
+        case 7:
+            printf ("You have pressed Joy-pad LEFT\n");
+            move_entity(&world->player, LEFT);
+            break;
+        case 8:
+            printf ("You have pressed Joy-pad RIGHT\n");
+            move_entity(&world->player, RIGHT);
+            break;
+        case 9:
+            printf ("You have pressed A\n");
+            entity_shoot(&world->player, UP);
+            break;
+        case 10:
+            printf ("You have pressed X\n");
+            break;
+        case 11:
+            printf ("You have pressed LEFT\n");
+            break;
+        case 12:
+            printf ("You have pressed RIGHT\n");
+            break;
+        default:
+            move_entity(&world->player, NONE);
+    }
 }

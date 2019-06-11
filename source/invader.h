@@ -27,8 +27,8 @@
 #define MAX_MISSILES 100
 
 static char map_tile[ROW][COLUMN];
-static missile active_missles[MAX_MISSILES];
-static unsigned int *gpioptr;
+//static missile active_missles[MAX_MISSILES];
+static unsigned int *gpio;
 
 typedef struct
 {
@@ -100,7 +100,8 @@ typedef enum
     LEFT,
     RIGHT,
     UP,
-    DOWN
+    DOWN,
+    NONE
 } direction;
 
 void init_game(game *game_environment);
@@ -128,6 +129,6 @@ void update_combat_system(map *world);
 void update_collision_system(map *world);
 void update_AI_system(map *world);
 
-void poll_input();
+void poll_input(map *world);
 
 #endif //INVADER_H
