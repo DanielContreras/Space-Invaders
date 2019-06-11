@@ -24,19 +24,37 @@
 
 #define ROW 25
 #define COLUMN 25
+#define MAX_MISSILES 100
 
 static char map_tile[ROW][COLUMN];
+static missile active_missles[MAX_MISSILES];
+static unsigned int *gpioptr;
 
 typedef struct
 {
     float x, y;
+    float x_velocity, y_velocity;
+    float width, height;
+    float health;
+    bool isPlayer;
+    bool needs_update;
+    bool needs_render;
+} entity;
+
+typedef struct
+{
+    float x, y;
+    float x_velocity;
+    float width, height;
     float damage;
 } missile;
 
 typedef struct
 {
     float x, y;
+    float y_velocity;
     float speed;
+    float width, height;
     float health;
     missile laser;
     float score;
@@ -45,7 +63,9 @@ typedef struct
 typedef struct
 {
     float x, y;
+    float x_velocity, y_velocity;
     float speed;
+    float width, height;
     float health;
     missile laser;
     int points;
@@ -54,6 +74,8 @@ typedef struct
 typedef struct
 {
     float x, y;
+    float x_velocity, y_velocity;
+    float width, height;
     float health;
 } bunker;
 
@@ -73,13 +95,39 @@ typedef struct
     bool game_over;
 } game;
 
+typedef enum
+{
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN
+} direction;
+
 void init_game(game *game_environment);
 void init_map(map *game_map);
+void init_inputs();
+void update_map();
+void print_map();
+
 void init_player(ship *player);
 void init_pawns(alien pawn[]);
 void init_knights(alien knight[]);
 void init_queens(alien queen[]);
 void init_bunkers(bunker bunkers[]);
-void print_map();
+
+bool intersect_AABB(missile laser, alien enemy);
+
+void update_world(map *world);
+void render_world();
+
+void move_entity(ship *player, direction dir);
+void entity_shoot(ship *player, direction dir);
+
+void update_movement_system(map *world);
+void update_combat_system(map *world);
+void update_collision_system(map *world);
+void update_AI_system(map *world);
+
+void poll_input();
 
 #endif //INVADER_H
