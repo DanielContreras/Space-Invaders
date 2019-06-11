@@ -9,10 +9,10 @@
 /**
  * Initializes a specified GPIO line to the specified function. 
  * 
- * @param *gpio 	A pointer to an int that contains the address of the GPIO base
- * 			base address
+ * @param *gpio 	    A pointer to an int that contains the address of the GPIO base
+ * 			            base address
  * @param pin_number	The specified pin number to set a fuction to
- * @param function	The specified function to set
+ * @param function	    The specified function to set
  */
 void init_gpio(unsigned int *gpio, int pin_number, int function) 
 {
@@ -24,10 +24,10 @@ void init_gpio(unsigned int *gpio, int pin_number, int function)
 /**
  * Writes a value (0 or 1) to the specified GPIO line (pin number) 
  * 
- * @param *gpio 	A pointer to an int that contains the address of the GPIO base
- * 			base address		
+ * @param *gpio 	    A pointer to an int that contains the address of the GPIO base
+ * 			            base address		
  * @param pin_number	The specified pin number that you are writing to
- * @param n		The value that you are writing to the pin number (0 or 1)
+ * @param n		        The value that you are writing to the pin number (0 or 1)
  */
 void write_gpio(unsigned int *gpio, int pin_number, int n)
 {
@@ -40,10 +40,10 @@ void write_gpio(unsigned int *gpio, int pin_number, int n)
 /**
  * Returns the value in the specified GPIO line (pin number) 
  * 
- * @param *gpio 	A pointer to an int that contains the address of the GPIO base
- * 			base address	
+ * @param *gpio 	    A pointer to an int that contains the address of the GPIO base
+ * 			            base address	
  * @param  pin_number	The GPIO line (pin number) being read from
- * @return 		The current value that is found in the specified GPIO line (pin number)
+ * @return 		        The current value that is found in the specified GPIO line (pin number)
  */
 int read_gpio(unsigned int *gpio, int pin_number)
 {
@@ -55,9 +55,9 @@ int read_gpio(unsigned int *gpio, int pin_number)
  * (no button press) then the function will return 0
  * 
  * @param *gpio 	A pointer to an int that contains the address of the GPIO base
- * 			base address
- * @return		An integer between 0 and 12 that represents the button that has been 
- * 			pressed
+ * 			        base address
+ * @return		    An integer between 0 and 12 that represents the button that has been 
+ * 			        pressed
  */
 int read_snes(unsigned int *gpio)
 {
