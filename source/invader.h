@@ -2,6 +2,7 @@
 #define INVADER_H
 
 #include <stdbool.h>
+#include "pixel.h"
 
 #define SPEED 1
 #define DAMAGE 1
@@ -26,9 +27,8 @@
 #define COLUMN 25
 #define MAX_MISSILES 100
 
-static char map_tile[ROW][COLUMN];
-//static missile active_missles[MAX_MISSILES];
-static unsigned int *gpio;
+char map_tile[ROW][COLUMN];
+unsigned int *gpio;
 
 typedef struct
 {
@@ -58,6 +58,7 @@ typedef struct
     float health;
     missile laser;
     float score;
+    render_image image;
 } ship;
 
 typedef struct
@@ -119,7 +120,7 @@ void init_bunkers(bunker bunkers[]);
 bool intersect_AABB(missile laser, alien enemy);
 
 void update_world(map *world);
-void render_world();
+void render_world(map *world);
 
 void move_entity(ship *player, direction dir);
 void entity_shoot(ship *player, direction dir);

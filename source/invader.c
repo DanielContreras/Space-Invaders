@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <wiringPi.h>
 #include "controller.h"
-#include "framebuffer.h"
 #include "GPIO_INIT.h"
+#include "pixel.h"
 
+#define length(x)  (sizeof(x) / sizeof((x)[0]))
 
 void init_game(game *game_environment)
 {
@@ -50,6 +51,10 @@ void update_map()
 
 void init_player(ship *player)
 {
+    for (int i = 0; i < (16*16*4+1); i++)
+    {
+        player->image.image_pixels[i] = alienn.image_pixels[i];
+    }
     player->x = 24;
     player->y = 12;
     player->speed = SPEED;
@@ -156,9 +161,11 @@ void update_world(map *world)
     update_AI_system(world);
 }
 
-void render_world()
+void render_world(map *world)
 {
-    print_map();
+    //print_map();
+    //render(world->player.image.image_pixels);
+    render(world);
 }
 
 void update_movement_system(map *world)
