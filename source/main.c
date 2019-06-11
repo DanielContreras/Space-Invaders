@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <wiringPi.h>
-#include "controller.h"
-#include "framebuffer.h"
+// #include <wiringPi.h>
+// #include "framebuffer.h"
+// #include "controller.h"
 #include "invader.h"
 
-int main() 
+int main()
 {
-	init_map();
-	return 0;
+    game game_environment = {};
+    init_game(&game_environment);
+    return 0;
 }
