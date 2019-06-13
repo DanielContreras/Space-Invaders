@@ -4,6 +4,8 @@
 #include "framebuffer.h"
 #include "invader.h"
 
+typedef struct map_struct map;
+
 typedef struct {
 	int color;
 	int x, y;
@@ -49,7 +51,6 @@ struct fbs framebufferstruct;
 void drawPixel(Pixel *pixel);
 void updateVerLoc(Pixel *pixel);
 void clearPixel(Pixel *pixel);
-//void render(unsigned char *image_pixels);
 void render(map *world);
 
 static int quit = 0;

@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include "invader.h"
 
-//void render(unsigned char *image_pixels)
 void render(map *world)
 {
     framebufferstruct = initFbInfo();
@@ -13,7 +12,7 @@ void render(map *world)
     int var_y = 650;
     int var_x = 800;  
 
-    int *colorptr = (int*) alienn.image_pixels;
+    int *colorptr = (int*) world->player.image.image_pixels;
     for ( i = 0; i < length; i++) 
     {
 	pixels[i] = malloc(sizeof(Pixel));
@@ -27,8 +26,6 @@ void render(map *world)
 	if (i % 16 == 0) {
 		var_y++;
 		var_x = 800; 
-		//printf("%d\n", var_y);
-		//printf("%d\n", var_x);
 	}
 	free(pixels[i]);
 	pixels[i] = NULL;
