@@ -21,8 +21,8 @@ void render(World *world)
     while (before > clock());
     
     for (int i = 0; i < NUM_ENEMIES; i++) {
-	clear(world->enemies[i]);
-	draw(world->enemies[i]);
+	    clear(world->enemies[i]);
+    	draw(world->enemies[i]);
     }
     
 }
