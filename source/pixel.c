@@ -1,6 +1,7 @@
 #include "pixel.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <wiringPi.h>
 #include <stdbool.h>
 #include <time.h>
@@ -27,6 +28,20 @@ void render(World *world)
         }
     }
     
+    if (world->player.needs_render) {
+        clear(world->player);
+        draw(world->player);
+        world->player.needs_render = false;
+    }
+
+    for (int i = 0; i < NUM_BUNKERS; i++) {
+        if (world->bunkers[i].needs_render) {
+            clear(world->bunkers[i]);
+            draw(world->bunkers[i]);
+            world->bunkers[i].needs_render = false;
+        }
+    }
+
 }
 
 void drawPixel(int x, int y, int color)
@@ -45,13 +60,15 @@ void clearPixel(int x, int y)
 void draw(Entity entity)
 {
     int *colorptr;
-    int width = 41;
-    int height = 30;
+    int width = entity.dimension.width;
+    int height = entity.dimension.height;
     
     if (entity.type == PAWN) colorptr = (int*) pawn_sprite.image_pixels;
     else if (entity.type == KNIGHT) colorptr = (int*) knight_sprite.image_pixels;
     else if (entity.type == QUEEN) colorptr = (int*) queen_sprite.image_pixels;
-    
+    else if (entity.type == PLAYER) colorptr = (int*) blue_ship_sprite.image_pixels;
+    else if (entity.type == BUNKER) colorptr = (int*) bunker_1.image_pixels;
+
     int x = entity.position.x;
     int oldX = x;
     int y = entity.position.y;
@@ -68,8 +85,8 @@ void draw(Entity entity)
 
 void clear(Entity entity)
 {
-    int width = 41;
-    int height = 30;
+    int width = entity.dimension.width;
+    int height = entity.dimension.height;
     
     int x = entity.previous_pos.x;
     int oldX = x;

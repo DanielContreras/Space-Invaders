@@ -13,6 +13,7 @@ void init_game(Game *world)
 {
     init_map(&world->world);
     init_framebuffer();
+    gpio = gpioPtr();
     world->game_over = false;
     world->game_win = false;
 }
@@ -26,12 +27,14 @@ void init_map(World *world)
 
 void init_player(Entity *player)
 {
-    player->position.x = 960;
-    player->position.y = 950;
+    player->dimension.height = blue_ship_sprite.height;
+    player->dimension.width = blue_ship_sprite.width;
+    player->position.x = (MAP_WIDTH / 2) - (player->dimension.width / 2);
+    player->position.y = MAP_HEIGHT - 162;
     player->health.current_health = PLAYER_HEALTH;
     player->laser.weapon.damage = DAMAGE;
     player->type = PLAYER;
-    player->needs_update = false;
+    player->needs_update = true;
     player->needs_render = false;
     player->alive = true;
 }
@@ -51,6 +54,8 @@ void init_enemies(World *world)
                 world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%20));
                 world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET + (30 + 20) * 3);
             }
+            world->enemies[i].dimension.height = pawn_sprite.height;
+            world->enemies[i].dimension.width =  pawn_sprite.width;
             world->enemies[i].health.current_health = PAWN_HEALTH;
             world->enemies[i].laser.weapon.damage = DAMAGE;
             world->enemies[i].type = PAWN;
@@ -62,6 +67,8 @@ void init_enemies(World *world)
                 world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%40));
                 world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET + (30 + 20) * 1);
             }
+            world->enemies[i].dimension.height = knight_sprite.height;
+            world->enemies[i].dimension.width =  knight_sprite.width;
             world->enemies[i].health.current_health = KNIGHT_HEALTH;
             world->enemies[i].laser.weapon.damage = DAMAGE;
             world->enemies[i].type = KNIGHT;
@@ -69,6 +76,8 @@ void init_enemies(World *world)
         } else if (i >= 50) {
             world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%50));
             world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET);
+            world->enemies[i].dimension.height = queen_sprite.height;
+            world->enemies[i].dimension.width =  queen_sprite.width;
             world->enemies[i].health.current_health = QUEEN_HEALTH;
             world->enemies[i].laser.weapon.damage = DAMAGE;
             world->enemies[i].type = QUEEN;
@@ -76,7 +85,6 @@ void init_enemies(World *world)
         world->enemies[i].alive = true;
         world->enemies[i].needs_render = false;
         world->enemies[i].needs_update = true;
-        world->enemies[i].dimension.width = 41;
     }
 
     for (int i = 0; i < 6; i++) {
@@ -89,12 +97,14 @@ void init_enemies(World *world)
 void init_bunkers(Entity bunkers[])
 {
     for (int i = 0; i < NUM_BUNKERS; i++) {
-        bunkers[i].position.x = 17 + i + i;
-        bunkers[i].position.y = 22;
+        bunkers[i].position.x = LEFT_MAX + (190 * (i+1)) + (120 * i);
+        bunkers[i].position.y = (MAP_HEIGHT) - 262;
+        bunkers[i].dimension.height = bunker_1.height;
+        bunkers[i].dimension.width = bunker_1.width;
         bunkers[i].health.current_health = BUNKER_HEALTH;
         bunkers[i].type = BUNKER;
+        bunkers[i].needs_update = true;
         bunkers[i].needs_render = false;
-        bunkers[i].needs_update = false;
         bunkers[i].alive = true;
     }
 }
@@ -103,11 +113,12 @@ void move_entity(Entity *entity, Direction direction)
 {
     switch (direction) {
         case LEFT:
-            entity->velocity.x = -HORIZONTAL_SPEED;
+            //entity->velocity.x = -HORIZONTAL_SPEED;
+            entity->velocity.x = (entity->type == PLAYER) ? -PLAYER_SPEED :  -HORIZONTAL_SPEED;
             entity->needs_update = true;
             break;
         case RIGHT:
-            entity->velocity.x = HORIZONTAL_SPEED;
+            entity->velocity.x = (entity->type == PLAYER) ? PLAYER_SPEED :  HORIZONTAL_SPEED;
             entity->needs_update = true;
             break;
         case UP:
@@ -146,7 +157,7 @@ void *updateWorld(void *arg)
         update_movement_system(arg);
         //update_combat_system(world);
         //update_collision_system(world);
-        //poll_input(world);
+        poll_input(arg);
         delay(42);
     }
     return NULL;
@@ -165,6 +176,8 @@ void update_movement_system(World *world)
     if (world->player.needs_update) {
         world->player.previous_pos = world->player.position;
         world->player.position.x += world->player.velocity.x;
+        world->player.needs_render = true;
+        world->player.needs_update = false;
     }
 
     for (int i = 0; i < NUM_BUNKERS; i++) {
@@ -172,6 +185,8 @@ void update_movement_system(World *world)
             world->bunkers[i].previous_pos = world->bunkers[i].position;
             world->bunkers[i].position.x += world->bunkers[i].velocity.x;
             world->bunkers[i].position.y += world->bunkers[i].velocity.y;
+            world->bunkers[i].needs_render = true;
+            world->bunkers[i].needs_update = false;
         }
     }
 
@@ -188,48 +203,38 @@ void update_movement_system(World *world)
 
 void poll_input(World *world)
 {
-//    input = read_snes();
-//    switch (input) {
-//        case 's':
-//            printf("You have pressed B\n");
-//            entity_shoot(&world->player, UP);
-//            break;
-//        case 2:
-//            printf("You have pressed Y\n");
-//            break;
-//        case 3:
-//            printf("You have pressed Select\n");
-//            break;
-//        case 5:
-//            printf("You have pressed Joy-pad UP\n");
-//            break;
-//        case 6:
-//            printf("You have pressed Joy-pad DOWN\n");
-//            break;
-//        case 'a':
-//            printf("You have pressed Joy-pad LEFT\n");
-//            move_entity(&world->player, LEFT);
-//            break;
-//        case 'd':
-//            printf("You have pressed Joy-pad RIGHT\n");
-//            move_entity(&world->player, RIGHT);
-//            break;
-//        case 9:
-//            printf("You have pressed A\n");
-//            entity_shoot(&world->player, UP);
-//            break;
-//        case 10:
-//            printf("You have pressed X\n");
-//            break;
-//        case 11:
-//            printf("You have pressed LEFT\n");
-//            break;
-//        case 12:
-//            printf("You have pressed RIGHT\n");
-//            break;
-//        default:
-//            move_entity(&world->player, STOP);
-//    }
+   switch (read_snes(gpio)) {
+       case '1':
+           entity_shoot(&world->player, UP);
+           break;
+       case 2:
+           break;
+       case 3:
+           break;
+       case 5:
+           break;
+       case 6:
+           break;
+       case 7:
+           move_entity(&world->player, LEFT);
+           break;
+       case 8:
+           move_entity(&world->player, RIGHT);
+           break;
+       case 9:
+           entity_shoot(&world->player, UP);
+           break;
+       case 10:
+           break;
+       case 11:
+           move_entity(&world->player, LEFT);
+           break;
+       case 12:
+           move_entity(&world->player, RIGHT);
+           break;
+       default:
+           move_entity(&world->player, STOP);
+   }
 }
 
 void update_AI_system(World *world)

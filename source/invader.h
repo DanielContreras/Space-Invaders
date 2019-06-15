@@ -6,6 +6,7 @@
 #define DAMAGE 1
 
 #define PLAYER_HEALTH 5
+#define PLAYER_SPEED 15
 
 #define NUM_PAWNS 30
 #define PAWN_POINTS 5
@@ -19,21 +20,25 @@
 #define QUEEN_POINTS 100
 #define QUEEN_HEALTH 15
 
-#define NUM_BUNKERS 4
+#define NUM_BUNKERS 3
 #define BUNKER_HEALTH 50
 
 #define alien_initial_y 162
 #define alien_initial_x 675
 #define HORIZONTAL_OFFSET 61
 #define VERTICAL_OFFSET 61
-#define LEFT_MAX 150
-#define RIGHT_MAX 1800
+#define LEFT_MAX 400
+#define RIGHT_MAX 1520
 #define TOP_MAX 162
 #define BOTTOM_MAX 917
 #define HORIZONTAL_SPEED 4
-#define VERTICAL_SPEED 4
+#define VERTICAL_SPEED 6
 
 #define NUM_ENEMIES (NUM_PAWNS + NUM_KNIGHTS + NUM_QUEENS)
+#define NUM_ENTITIES (NUM_ENEMIES + NUM_BUNKERS + 1) 
+
+#define MAP_WIDTH 1920
+#define MAP_HEIGHT 1080
 
 static bool travel_right = true;
 unsigned int *gpio;

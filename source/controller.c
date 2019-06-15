@@ -40,7 +40,7 @@ int read_gpio(unsigned int *gpio, int pin_number)
  */
 int read_snes(unsigned int *gpio)
 {
-    int buttons[16] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    int buttons[16];
     
     init_gpio(gpio, CLK, 0b001);
     init_gpio(gpio, LAT, 0b001);
