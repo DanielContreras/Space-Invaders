@@ -22,9 +22,6 @@
 #define NUM_BUNKERS 4
 #define BUNKER_HEALTH 50
 
-#define ROW 1920
-#define COLUMN 1080
-
 #define alien_initial_y 162
 #define alien_initial_x 675
 #define HORIZONTAL_OFFSET 61
@@ -38,7 +35,6 @@
 
 #define NUM_ENEMIES (NUM_PAWNS + NUM_KNIGHTS + NUM_QUEENS)
 
-char map_tile[ROW][COLUMN];
 static bool travel_right = true;
 unsigned int *gpio;
 

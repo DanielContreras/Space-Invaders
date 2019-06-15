@@ -15,14 +15,16 @@ void init_framebuffer()
 void render(World *world)
 {
     int fps = 60;
-    int msec = 0;
     clock_t before = clock() + CLOCKS_PER_SEC / fps;
    
     while (before > clock());
     
     for (int i = 0; i < NUM_ENEMIES; i++) {
-	    clear(world->enemies[i]);
-    	draw(world->enemies[i]);
+        if (world->enemies[i].needs_render) {
+	        clear(world->enemies[i]);
+    	    draw(world->enemies[i]);
+            world->enemies[i].needs_render = false;
+        }
     }
     
 }

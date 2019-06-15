@@ -9,8 +9,6 @@
 #include "pixel.h"
 #include "images.h"
 
-//pthread_mutex_t lock;
-
 void init_game(Game *world)
 {
     init_map(&world->world);
@@ -21,18 +19,9 @@ void init_game(Game *world)
 
 void init_map(World *world)
 {
-    update_map();
     init_player(&world->player);
     init_enemies(world);
     init_bunkers(world->bunkers);
-}
-
-void update_map()
-{
-    for (int i = 0; i < ROW; i++) {
-        for (int j = 0; j < COLUMN; j++)
-            map_tile[i][j] = '-';
-    }
 }
 
 void init_player(Entity *player)
@@ -42,11 +31,14 @@ void init_player(Entity *player)
     player->health.current_health = PLAYER_HEALTH;
     player->laser.weapon.damage = DAMAGE;
     player->type = PLAYER;
+    player->needs_update = false;
+    player->needs_render = false;
+    player->alive = true;
 }
 
 void init_enemies(World *world)
 {
-    for (int i = 0, j = 0, k = 0; i < NUM_ENEMIES; i++) {
+    for (int i = 0, j = 0; i < NUM_ENEMIES; i++) {
         if (i < NUM_PAWNS) {
             if (i < 10) {
                 world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * i);
@@ -82,10 +74,11 @@ void init_enemies(World *world)
             world->enemies[i].type = QUEEN;
         }
         world->enemies[i].alive = true;
-        world->enemies[i].needs_render = true;
+        world->enemies[i].needs_render = false;
         world->enemies[i].needs_update = true;
         world->enemies[i].dimension.width = 41;
     }
+
     for (int i = 0; i < 6; i++) {
         world->left_most_enemies[i] = 10 * i;
         world->right_most_enemies[i] = 10 * i + 9;
@@ -100,7 +93,9 @@ void init_bunkers(Entity bunkers[])
         bunkers[i].position.y = 22;
         bunkers[i].health.current_health = BUNKER_HEALTH;
         bunkers[i].type = BUNKER;
-        map_tile[(int) bunkers[i].position.y][(int) bunkers[i].position.x] = 'B';
+        bunkers[i].needs_render = false;
+        bunkers[i].needs_update = false;
+        bunkers[i].alive = true;
     }
 }
 
@@ -109,25 +104,32 @@ void move_entity(Entity *entity, Direction direction)
     switch (direction) {
         case LEFT:
             entity->velocity.x = -HORIZONTAL_SPEED;
+            entity->needs_update = true;
             break;
         case RIGHT:
             entity->velocity.x = HORIZONTAL_SPEED;
+            entity->needs_update = true;
             break;
         case UP:
             entity->velocity.y = -VERTICAL_SPEED;
+            entity->needs_update = true;
             break;
         case DOWN:
             entity->velocity.y = VERTICAL_SPEED;
+            entity->needs_update = true;
             break;
         case RESET_VERTICAL:
             entity->velocity.y = 0;
+            entity->needs_update = true;
             break;
         case RESET_HORIZONTAL:
             entity->velocity.x = 0;
+            entity->needs_update = true;
             break;
         default:
             entity->velocity.x = 0;
             entity->velocity.y = 0;
+            entity->needs_update = true;
     }
 }
 
@@ -145,7 +147,7 @@ void *updateWorld(void *arg)
         //update_combat_system(world);
         //update_collision_system(world);
         //poll_input(world);
-        delay(65);
+        delay(42);
     }
     return NULL;
 }
@@ -160,19 +162,27 @@ void *updateRender(void *arg)
 
 void update_movement_system(World *world)
 {
-    world->player.previous_pos = world->player.position;
-    world->player.position.x += world->player.velocity.x;
+    if (world->player.needs_update) {
+        world->player.previous_pos = world->player.position;
+        world->player.position.x += world->player.velocity.x;
+    }
 
     for (int i = 0; i < NUM_BUNKERS; i++) {
-        world->bunkers[i].previous_pos = world->bunkers[i].position;
-        world->bunkers[i].position.x += world->bunkers[i].velocity.x;
-        world->bunkers[i].position.y += world->bunkers[i].velocity.y;
+        if (world->bunkers[i].needs_update) {
+            world->bunkers[i].previous_pos = world->bunkers[i].position;
+            world->bunkers[i].position.x += world->bunkers[i].velocity.x;
+            world->bunkers[i].position.y += world->bunkers[i].velocity.y;
+        }
     }
 
     for (int i = 0; i < NUM_ENEMIES; i++) {
-        world->enemies[i].previous_pos = world->enemies[i].position;
-        world->enemies[i].position.x += world->enemies[i].velocity.x;
-        world->enemies[i].position.y += world->enemies[i].velocity.y;
+       if (world->enemies[i].needs_update) {
+            world->enemies[i].previous_pos = world->enemies[i].position;
+            world->enemies[i].position.x += world->enemies[i].velocity.x;
+            world->enemies[i].position.y += world->enemies[i].velocity.y;
+            world->enemies[i].needs_render = true;
+            world->enemies[i].needs_update = false;
+        }
     }
 }
 
@@ -248,7 +258,6 @@ void update_AI_system(World *world)
     for (int i = 0; i < NUM_ENEMIES; i++) {
         if (travel_right) {
             move_entity(&world->enemies[i], RIGHT);
-            //world->enemies[i].
         } else {
             move_entity(&world->enemies[i], LEFT);
         }

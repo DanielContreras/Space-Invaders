@@ -7,10 +7,10 @@
 
 int main()
 {
-    Game game = {};
+    Game game;
     init_game(&game); 
     
-    pthread_t animation_t, logic_t, a_t;
+    pthread_t animation_t, logic_t;
     
     pthread_create(&logic_t, NULL, updateWorld, &game);
     pthread_create(&animation_t, NULL, updateRender, &game);
