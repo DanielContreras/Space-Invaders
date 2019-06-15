@@ -2,7 +2,6 @@
 #define INVADER_H
 
 #include <stdbool.h>
-#include "pixel.h"
 
 #define DAMAGE 1
 
@@ -23,16 +22,25 @@
 #define NUM_BUNKERS 4
 #define BUNKER_HEALTH 50
 
-#define ROW 25
-#define COLUMN 41
+#define ROW 1920
+#define COLUMN 1080
 
-#define alien_initial_y 0
-#define alien_initial_x 11
+#define alien_initial_y 162
+#define alien_initial_x 675
+#define HORIZONTAL_OFFSET 61
+#define VERTICAL_OFFSET 61
+#define LEFT_MAX 150
+#define RIGHT_MAX 1800
+#define TOP_MAX 162
+#define BOTTOM_MAX 917
+#define HORIZONTAL_SPEED 4
+#define VERTICAL_SPEED 4
 
 #define NUM_ENEMIES (NUM_PAWNS + NUM_KNIGHTS + NUM_QUEENS)
 
 char map_tile[ROW][COLUMN];
 static bool travel_right = true;
+unsigned int *gpio;
 
 typedef struct
 {
@@ -85,6 +93,7 @@ typedef struct
 typedef struct
 {
     Position position;
+    Position previous_pos;
     Velocity velocity;
     Dimension dimension;
     Health health;
@@ -92,6 +101,7 @@ typedef struct
     Type type;
     bool needs_update;
     bool needs_render;
+    bool alive;
 } Entity;
 
 typedef struct map
@@ -99,6 +109,8 @@ typedef struct map
     Entity player;
     Entity bunkers[NUM_BUNKERS];
     Entity enemies[NUM_ENEMIES];
+    int left_most_enemies[6];
+    int right_most_enemies[6];
 } World;
 
 typedef struct
@@ -121,8 +133,6 @@ typedef enum
 
 void init_game(Game *world);
 void init_map(World *world);
-void update_map();
-void print_map();
 
 void init_player(Entity *player);
 void init_enemies(World *world);
@@ -130,8 +140,9 @@ void init_bunkers(Entity bunkers[]);
 
 bool intersect_AABB(Weapon laser, Entity enemy);
 
-void update_world(World *world);
-void render_world(World *world);
+void *updateWorld(void *arg);
+void *updateRender(void *arg);
+void *clearRender(void *arg);
 
 void move_entity(Entity *player, Direction direction);
 void entity_shoot(Entity *player, Direction direction);

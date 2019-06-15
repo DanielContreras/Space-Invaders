@@ -2,13 +2,19 @@
 
 #include <stdio.h>
 #include <wiringPi.h>
+#include <stdbool.h>
+#include <pthread.h>
 #include "controller.h"
 #include "GPIO_INIT.h"
 #include "pixel.h"
+#include "images.h"
+
+//pthread_mutex_t lock;
 
 void init_game(Game *world)
 {
     init_map(&world->world);
+    init_framebuffer();
     world->game_over = false;
     world->game_win = false;
 }
@@ -21,15 +27,6 @@ void init_map(World *world)
     init_bunkers(world->bunkers);
 }
 
-void print_map() {
-    for (int i = 0; i < ROW; i++) {
-        for (int j = 0; j < COLUMN; j++)
-            printf("%c ", map_tile[i][j]);
-        printf("\n");
-    }
-    printf("\n");
-}
-
 void update_map()
 {
     for (int i = 0; i < ROW; i++) {
@@ -40,54 +37,60 @@ void update_map()
 
 void init_player(Entity *player)
 {
-    player->position.x = 20;
-    player->position.y = 24;
+    player->position.x = 960;
+    player->position.y = 950;
     player->health.current_health = PLAYER_HEALTH;
     player->laser.weapon.damage = DAMAGE;
     player->type = PLAYER;
-    map_tile[(int) player->position.y][(int) player->position.x] = 'S';
 }
 
 void init_enemies(World *world)
 {
     for (int i = 0, j = 0, k = 0; i < NUM_ENEMIES; i++) {
-        if (i < 30) {
+        if (i < NUM_PAWNS) {
             if (i < 10) {
-                world->enemies[i].position.x = alien_initial_x + i*2;
-                world->enemies[i].position.y = alien_initial_y + 3;
+                world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * i);
+                world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET + (30 + 20) * 5);
             } else if (i < 20) {
-                world->enemies[i].position.x = alien_initial_x + (i%10)*2;
-                world->enemies[i].position.y = alien_initial_y + 4;
+                world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%10));
+                world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET + (30 + 20) * 4);
+                
             } else {
-                world->enemies[i].position.x = alien_initial_x + (i%20)*2;
-                world->enemies[i].position.y = alien_initial_y + 5;
+                world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%20));
+                world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET + (30 + 20) * 3);
             }
             world->enemies[i].health.current_health = PAWN_HEALTH;
             world->enemies[i].laser.weapon.damage = DAMAGE;
             world->enemies[i].type = PAWN;
-            map_tile[(int) world->enemies[i].position.y][(int) world->enemies[i].position.x] = 'P';
         } else if (i < 50) {
             if (j < 10) {
-                world->enemies[i].position.x = alien_initial_x + j*2;
-                world->enemies[i].position.y = alien_initial_y + 1;
+                world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%30));
+                world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET + (30 + 20) * 2);
             } else {
-                world->enemies[i].position.x = alien_initial_x + (j%10)*2;
-                world->enemies[i].position.y = alien_initial_y + 2;
+                world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%40));
+                world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET + (30 + 20) * 1);
             }
             world->enemies[i].health.current_health = KNIGHT_HEALTH;
             world->enemies[i].laser.weapon.damage = DAMAGE;
             world->enemies[i].type = KNIGHT;
-            map_tile[(int) world->enemies[i].position.y][(int) world->enemies[i].position.x] = 'K';
             j++;
         } else if (i >= 50) {
-            world->enemies[i].position.x = alien_initial_x + (i%50)*2;
-            world->enemies[i].position.y = alien_initial_y;
+            world->enemies[i].position.x = alien_initial_x + (HORIZONTAL_OFFSET * (i%50));
+            world->enemies[i].position.y = alien_initial_y + (VERTICAL_OFFSET);
             world->enemies[i].health.current_health = QUEEN_HEALTH;
             world->enemies[i].laser.weapon.damage = DAMAGE;
             world->enemies[i].type = QUEEN;
-            map_tile[(int) world->enemies[i%50].position.y][(int) world->enemies[i%50].position.x] = 'Q';
         }
+        world->enemies[i].alive = true;
+        world->enemies[i].needs_render = true;
+        world->enemies[i].needs_update = true;
+        world->enemies[i].dimension.width = 41;
     }
+    for (int i = 0; i < 6; i++) {
+        world->left_most_enemies[i] = 10 * i;
+        world->right_most_enemies[i] = 10 * i + 9;
+    }
+    
 }
 
 void init_bunkers(Entity bunkers[])
@@ -105,18 +108,16 @@ void move_entity(Entity *entity, Direction direction)
 {
     switch (direction) {
         case LEFT:
-            entity->velocity.x = 0;
-            entity->velocity.x = -1;
+            entity->velocity.x = -HORIZONTAL_SPEED;
             break;
         case RIGHT:
-            entity->velocity.x = 0;
-            entity->velocity.x = 1;
+            entity->velocity.x = HORIZONTAL_SPEED;
             break;
         case UP:
-            entity->velocity.y = -1;
+            entity->velocity.y = -VERTICAL_SPEED;
             break;
         case DOWN:
-            entity->velocity.y = 1;
+            entity->velocity.y = VERTICAL_SPEED;
             break;
         case RESET_VERTICAL:
             entity->velocity.y = 0;
@@ -135,42 +136,43 @@ void entity_shoot(Entity *entity, Direction direction)
 
 }
 
-void update_world(World *world)
+void *updateWorld(void *arg) 
 {
-    update_map();
-    update_AI_system(world);
-    update_movement_system(world);
-    update_combat_system(world);
-    update_collision_system(world);
-//    poll_input(world);
+    
+    while (1) {
+        update_AI_system(arg);
+        update_movement_system(arg);
+        //update_combat_system(world);
+        //update_collision_system(world);
+        //poll_input(world);
+        delay(65);
+    }
+    return NULL;
 }
 
-void render_world(World *world)
+void *updateRender(void *arg) 
 {
-    print_map();
+    while (1) {
+        render(arg);
+    }
+    return NULL;
 }
 
 void update_movement_system(World *world)
 {
+    world->player.previous_pos = world->player.position;
     world->player.position.x += world->player.velocity.x;
-    map_tile[(int) world->player.position.y][(int) world->player.position.x] = 'S';
 
     for (int i = 0; i < NUM_BUNKERS; i++) {
+        world->bunkers[i].previous_pos = world->bunkers[i].position;
         world->bunkers[i].position.x += world->bunkers[i].velocity.x;
         world->bunkers[i].position.y += world->bunkers[i].velocity.y;
-        map_tile[(int) world->bunkers[i].position.y][(int) world->bunkers[i].position.x] = 'B';
     }
 
     for (int i = 0; i < NUM_ENEMIES; i++) {
+        world->enemies[i].previous_pos = world->enemies[i].position;
         world->enemies[i].position.x += world->enemies[i].velocity.x;
         world->enemies[i].position.y += world->enemies[i].velocity.y;
-        if (i < 30) {
-            map_tile[(int) world->enemies[i].position.y][(int) world->enemies[i].position.x] = 'P';
-        } else if (i < 50) {
-            map_tile[(int) world->enemies[i].position.y][(int) world->enemies[i].position.x] = 'K';
-        } else if (i >= 50) {
-            map_tile[(int) world->enemies[i].position.y][(int) world->enemies[i].position.x] = 'Q';
-        }
     }
 }
 
@@ -222,27 +224,35 @@ void poll_input(World *world)
 
 void update_AI_system(World *world)
 {
+    /* vertical reset */
     for (int i = 0; i < NUM_ENEMIES; i++) {
         move_entity(&world->enemies[i], RESET_VERTICAL);
+    }
+    
+    /* check wall collisions */
+    for (int i = 0; i < 6; i++) {
+        if ((world->enemies[world->right_most_enemies[i]].position.x + world->enemies[world->right_most_enemies[i]].dimension.width) >= (RIGHT_MAX)) {
+            travel_right = false;
+            for (int j = 0; j < NUM_ENEMIES; j++) {
+                move_entity(&world->enemies[j], DOWN);
+            }
+        } else if ((world->enemies[world->left_most_enemies[i]].position.x) <= (LEFT_MAX)) {
+            travel_right = true;
+            for (int j = 0; j < NUM_ENEMIES; j++) {
+                move_entity(&world->enemies[j], DOWN);
+            }
+        } 
+    }
+    
+    /* move enemies right or left */
+    for (int i = 0; i < NUM_ENEMIES; i++) {
         if (travel_right) {
-            if (world->enemies[NUM_ENEMIES - 1].position.x == (COLUMN - 2)) {
-                travel_right = false;
-                for (int j = 0; j < NUM_ENEMIES; j++)
-                    move_entity(&world->enemies[j], DOWN);
-                break;
-            }
             move_entity(&world->enemies[i], RIGHT);
+            //world->enemies[i].
         } else {
-            if (world->enemies[10].position.x == 1) {
-                travel_right = true;
-                for (int j = 0; j < NUM_ENEMIES; j++)
-                    move_entity(&world->enemies[j], DOWN);
-                break;
-            }
             move_entity(&world->enemies[i], LEFT);
         }
     }
-    /* Randomly engage enemies in combat here */
 }
 
 void update_combat_system(World *world)
