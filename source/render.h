@@ -4,9 +4,11 @@
 #include "framebuffer.h"
 #include "invader.h"
 
+#define FPS 60
+
 typedef struct {
-  int color;
-  int x, y;
+    int color;
+    int x, y;
 } Pixel;
 
 struct fbs framebufferstruct;

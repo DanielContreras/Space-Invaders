@@ -150,8 +150,6 @@ Missile *create_bullet(Entity owner) {
     Missile *bullet = malloc(sizeof(Missile));
     bullet->position.x = owner.position.x + (owner.dimension.width / 2);
     bullet->position.y = owner.position.y - owner.dimension.height;
-    bullet->velocity.x = 0;
-    bullet->velocity.y = 20;
     bullet->dimension.height = red_laser.height;
     bullet->dimension.width = red_laser.width;
     bullet->needs_update = true;
@@ -168,28 +166,27 @@ void delete_bullet(Missile *bullet) { free(bullet); }
 void move_bullet(Missile *projectile, Direction direction) {
     switch (direction) {
         case UP:
-            projectile->velocity.y = -10;
+            projectile->velocity.y = -BULLET_VELOCITY;
             break;
         case DOWN:
-            projectile->velocity.y = 10;
+            projectile->velocity.y = BULLET_VELOCITY;
             break;
         default:
             projectile->velocity.y = 0;
     }
 }
 
-void entity_shoot(Entity *entity, Direction direction) {
-    clock_t start = clock() + CLOCKS_PER_SEC / 12;
+clock_t start = 0;
 
-    while (clock() < start)
-        ;
+void entity_shoot(Entity *entity, Direction direction) {
+    if (clock() < start) return;
+
+    start = clock() + CLOCKS_PER_SEC / 2;
 
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (!entity->projectile[i].active) {
             entity->projectile[i] = *create_bullet(*entity);
             move_bullet(&entity->projectile[i], direction);
-            printf("%p: %f\n", (void *)&entity->projectile[i],
-                   entity->projectile->position.y);
             return;
         }
     }
@@ -199,6 +196,7 @@ void *updateWorld(void *arg) {
     while (1) {
         update_AI_system(arg);
         update_movement_system(arg);
+        update_collision_system(arg);
         delay(42);
     }
     return NULL;
