@@ -52,10 +52,10 @@ typedef struct { float x, y; } Velocity;
 typedef struct { float width, height; } Dimension;
 
 typedef struct {
-  float damage;
-  float range;
-  long cool_down;
-  long last_attack;
+    float damage;
+    float range;
+    long cool_down;
+    long last_attack;
 } Weapon;
 
 typedef union { int current_health; } Health;
@@ -63,52 +63,52 @@ typedef union { int current_health; } Health;
 typedef enum { PLAYER = 1, PAWN = 2, KNIGHT = 3, QUEEN = 4, BUNKER = 5 } Type;
 
 typedef struct {
-  Position position;
-  Position previous_pos;
-  Velocity velocity;
-  Dimension dimension;
-  Weapon weapon;
-  bool needs_update;
-  bool needs_render;
-  bool active;
-  bool enabled;
+    Position position;
+    Position previous_pos;
+    Velocity velocity;
+    Dimension dimension;
+    Weapon weapon;
+    bool needs_update;
+    bool needs_render;
+    bool active;
+    bool enabled;
 } Missile;
 
 /* ship, alien, bunker */
 typedef struct {
-  Position position;
-  Position previous_pos;
-  Velocity velocity;
-  Dimension dimension;
-  Health health;
-  Missile projectile[MAX_BULLETS];
-  Type type;
-  bool needs_update;
-  bool needs_render;
+    Position position;
+    Position previous_pos;
+    Velocity velocity;
+    Dimension dimension;
+    Health health;
+    Missile projectile[MAX_BULLETS];
+    Type type;
+    bool needs_update;
+    bool needs_render;
 } Entity;
 
 typedef struct map {
-  Entity player;
-  Entity bunkers[NUM_BUNKERS];
-  Entity enemies[NUM_ENEMIES];
-  int left_most_enemies[6];
-  int right_most_enemies[6];
+    Entity player;
+    Entity bunkers[NUM_BUNKERS];
+    Entity enemies[NUM_ENEMIES];
+    int left_most_enemies[6];
+    int right_most_enemies[6];
 } World;
 
 typedef struct {
-  World world;
-  bool game_win;
-  bool game_over;
+    World world;
+    bool game_win;
+    bool game_over;
 } Game;
 
 typedef enum {
-  LEFT,
-  RIGHT,
-  UP,
-  DOWN,
-  STOP,
-  RESET_VERTICAL,
-  RESET_HORIZONTAL
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN,
+    STOP,
+    RESET_VERTICAL,
+    RESET_HORIZONTAL
 } Direction;
 
 void init_game(Game *world);
@@ -139,4 +139,4 @@ void move_bullet(Missile *projectile, Direction direction);
 
 void poll_input(World *world);
 
-#endif // INVADER_H
+#endif  // INVADER_H
