@@ -35,7 +35,9 @@
 #define VERTICAL_SPEED 6
 
 #define NUM_ENEMIES (NUM_PAWNS + NUM_KNIGHTS + NUM_QUEENS)
-#define NUM_ENTITIES (NUM_ENEMIES + NUM_BUNKERS + 1) 
+#define NUM_ENTITIES (NUM_ENEMIES + NUM_BUNKERS + 1)
+
+#define MAX_BULLETS 10
 
 #define MAP_WIDTH 1920
 #define MAP_HEIGHT 1080
@@ -43,93 +45,70 @@
 static bool travel_right = true;
 unsigned int *gpio;
 
-typedef struct
-{
-    float x, y;
-} Position;
+typedef struct { float x, y; } Position;
 
-typedef struct
-{
-    float x, y;
-} Velocity;
+typedef struct { float x, y; } Velocity;
 
-typedef struct
-{
-    float width, height;
-} Dimension;
+typedef struct { float width, height; } Dimension;
 
-typedef struct
-{
-    float damage;
-    float range;
-    long cool_down;
-    long last_attack;
+typedef struct {
+  float damage;
+  float range;
+  long cool_down;
+  long last_attack;
 } Weapon;
 
-typedef union
-{
-    int current_health;
-} Health;
+typedef union { int current_health; } Health;
 
-typedef enum
-{
-    PLAYER = 1,
-    PAWN = 2,
-    KNIGHT = 3,
-    QUEEN = 4,
-    BUNKER = 5
-} Type;
+typedef enum { PLAYER = 1, PAWN = 2, KNIGHT = 3, QUEEN = 4, BUNKER = 5 } Type;
 
-typedef struct
-{
-    Position position;
-    Velocity velocity;
-    Dimension dimension;
-    Weapon weapon;
-    bool needs_update;
-    bool needs_render;
+typedef struct {
+  Position position;
+  Position previous_pos;
+  Velocity velocity;
+  Dimension dimension;
+  Weapon weapon;
+  bool needs_update;
+  bool needs_render;
+  bool active;
+  bool enabled;
 } Missile;
 
 /* ship, alien, bunker */
-typedef struct
-{
-    Position position;
-    Position previous_pos;
-    Velocity velocity;
-    Dimension dimension;
-    Health health;
-    Missile laser;
-    Type type;
-    bool needs_update;
-    bool needs_render;
-    bool alive;
+typedef struct {
+  Position position;
+  Position previous_pos;
+  Velocity velocity;
+  Dimension dimension;
+  Health health;
+  Missile projectile[MAX_BULLETS];
+  Type type;
+  bool needs_update;
+  bool needs_render;
 } Entity;
 
-typedef struct map
-{
-    Entity player;
-    Entity bunkers[NUM_BUNKERS];
-    Entity enemies[NUM_ENEMIES];
-    int left_most_enemies[6];
-    int right_most_enemies[6];
+typedef struct map {
+  Entity player;
+  Entity bunkers[NUM_BUNKERS];
+  Entity enemies[NUM_ENEMIES];
+  int left_most_enemies[6];
+  int right_most_enemies[6];
 } World;
 
-typedef struct
-{
-    World world;
-    bool game_win;
-    bool game_over;
+typedef struct {
+  World world;
+  bool game_win;
+  bool game_over;
 } Game;
 
-typedef enum
-{
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
-    STOP,
-    RESET_VERTICAL,
-    RESET_HORIZONTAL
+typedef enum {
+  LEFT,
+  RIGHT,
+  UP,
+  DOWN,
+  STOP,
+  RESET_VERTICAL,
+  RESET_HORIZONTAL
 } Direction;
 
 void init_game(Game *world);
@@ -153,6 +132,11 @@ void update_combat_system(World *world);
 void update_collision_system(World *world);
 void update_AI_system(World *world);
 
+Missile *create_bullet(Entity owner);
+void create_projectile();
+void delete_bullet(Missile *bullet);
+void move_bullet(Missile *projectile, Direction direction);
+
 void poll_input(World *world);
 
-#endif //INVADER_H
+#endif // INVADER_H
