@@ -11,6 +11,6 @@
 void init_gpio(unsigned int *gpio, int pin_number, int function);
 void write_gpio(unsigned int *gpio, int pin_number, int n);
 int read_gpio(unsigned int *gpio, int pin_number);
-int read_snes(unsigned int *gpio);
+int *read_snes(unsigned int *gpio);
 
 #endif
