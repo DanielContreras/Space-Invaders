@@ -106,6 +106,7 @@ typedef struct map {
     Entity player;
     Entity bunkers[NUM_BUNKERS];
     Entity enemies[NUM_ENEMIES];
+    int shooters[10];
     int left_most_enemies[6];
     int right_most_enemies[6];
     bool game_over;
@@ -142,6 +143,11 @@ void init_bunkers(Entity bunkers[]);
 void *updateWorld(void *arg);
 void *updateRender(void *arg);
 void *clearRender(void *arg);
+void *updateAI(void *arg);
+void *updateInput(void *arg);
+
+void enemy_shoot(World *world);
+void entity_shoot1(Entity *entity, Direction direction);
 
 void move_entity(Entity *player, Direction direction);
 void entity_shoot(Entity *player, Direction direction);

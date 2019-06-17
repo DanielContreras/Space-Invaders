@@ -63,6 +63,21 @@ void render(World *world) {
         }
     }
 
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < MAX_BULLETS; j++) {
+            if (world->enemies[i].projectile[j].needs_render) {
+                clear_projectile(world->enemies[i].projectile[j].previous_pos,
+                                 world->enemies[i].projectile[j].dimension);
+                draw_projectile(world->enemies[i].projectile[j].position,
+                                world->enemies[i].projectile[j].dimension);
+            } else if (world->enemies[i].projectile[j].needs_clear) {
+                clear_projectile(world->enemies[i].projectile[j].position,
+                                 world->enemies[i].projectile[j].dimension);
+                world->enemies[i].projectile[j].needs_clear = false;
+            }
+        }
+    }
+
     if (world->playerScore.needsRender) {
         int ones = (world->playerScore.score % 10);
         int tens = (world->playerScore.score % 100) / 10;

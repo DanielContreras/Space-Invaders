@@ -101,11 +101,17 @@ void init_enemies(World *world) {
         world->enemies[i].needs_update = true;
         world->enemies[i].enabled = true;
         world->enemies[i].combat_update = false;
+        for (int j = 0; j < MAX_BULLETS; j++)
+            world->enemies[i].projectile[j].active = false;
     }
 
     for (int i = 0; i < 6; i++) {
         world->left_most_enemies[i] = 10 * i;
         world->right_most_enemies[i] = 10 * i + 9;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        world->shooters[i] = i;
     }
 }
 
@@ -164,7 +170,10 @@ void move_entity(Entity *entity, Direction direction) {
 Missile *create_bullet(Entity owner) {
     Missile *bullet = malloc(sizeof(Missile));
     bullet->position.x = owner.position.x + (owner.dimension.width / 2);
-    bullet->position.y = owner.position.y - owner.dimension.height;
+    if (owner.type == PLAYER)
+        bullet->position.y = owner.position.y - owner.dimension.height;
+    else
+        bullet->position.y = owner.position.y + owner.dimension.height;
     bullet->dimension.height = red_laser.height;
     bullet->dimension.width = red_laser.width;
     bullet->needs_update = true;
@@ -187,9 +196,23 @@ void move_bullet(Missile *projectile, Direction direction) {
 }
 
 clock_t start = 0;
-
 void entity_shoot(Entity *entity, Direction direction) {
     if (clock() < start) return;
+
+    start = clock() + CLOCKS_PER_SEC / 2;
+
+    for (int i = 0; i < MAX_BULLETS; i++) {
+        if (!entity->projectile[i].active) {
+            entity->projectile[i] = *create_bullet(*entity);
+            move_bullet(&entity->projectile[i], direction);
+            return;
+        }
+    }
+}
+
+clock_t start1 = 0;
+void entity_shoot1(Entity *entity, Direction direction) {
+    if (clock() < start1) return;
 
     start = clock() + CLOCKS_PER_SEC / 2;
 
@@ -219,6 +242,20 @@ void *updateRender(void *arg) {
         render(arg);
     }
     return NULL;
+}
+
+void *updateAI(void *arg) {
+    while (1) {
+        enemy_shoot(arg);
+        delay(42);
+    }
+    return NULL;
+}
+
+void *updateInput(void *arg) {
+    while (1) {
+        poll_input(arg);
+    }
 }
 
 void update_movement_system(World *world) {
@@ -256,6 +293,26 @@ void update_movement_system(World *world) {
             }
         }
     }
+
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < MAX_BULLETS; j++) {
+            if (world->enemies[i].projectile[j].needs_update) {
+                if (world->enemies[i].projectile[j].position.y < BOTTOM_MAX) {
+                    world->enemies[i].projectile[j].previous_pos =
+                        world->enemies[i].projectile[j].position;
+                    world->enemies[i].projectile[j].position.x +=
+                        world->enemies[i].projectile[j].velocity.x;
+                    world->enemies[i].projectile[j].position.y +=
+                        world->enemies[i].projectile[j].velocity.y;
+                    world->enemies[i].projectile[j].needs_render = true;
+                } else {
+                    world->enemies[i].projectile[j].needs_render = false;
+                    world->enemies[i].projectile[j].active = false;
+                    world->enemies[i].projectile[j].needs_clear = true;
+                }
+            }
+        }
+    }
 }
 
 void poll_input(World *world) {
@@ -272,6 +329,7 @@ void poll_input(World *world) {
     free(input);
 }
 
+clock_t before = 0;
 void update_AI_system(World *world) {
     /* vertical reset */
     for (int i = 0; i < NUM_ENEMIES; i++)
@@ -303,8 +361,14 @@ void update_AI_system(World *world) {
             move_entity(&world->enemies[i], LEFT);
         }
     }
+}
 
+void enemy_shoot(World *world) {
     /* enemy shooting */
+    if (clock() < before) return;
+    before = clock() + CLOCKS_PER_SEC;
+
+    entity_shoot1(&world->enemies[0], DOWN);
 }
 
 void update_collision_system(World *world) {
@@ -319,6 +383,16 @@ void update_collision_system(World *world) {
                 resolve_collisions(&player->projectile[i], &bunker[k]);
         }
     }
+
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < MAX_BULLETS; j++) {
+            if (enemy[i].projectile[j].active) {
+                resolve_collisions(&enemy[i].projectile[j], player);
+                for (int k = 0; k < NUM_BUNKERS; k++)
+                    resolve_collisions(&enemy[i].projectile[i], &bunker[k]);
+            }
+        }
+    }
 }
 
 void resolve_collisions(Missile *projectile, Entity *entity) {
@@ -330,7 +404,6 @@ void resolve_collisions(Missile *projectile, Entity *entity) {
         projectile->needs_render = false;
         projectile->needs_clear = true;
         entity->combat_update = true;
-        printf("%d\n", entity->type);
     }
 }
 
@@ -407,7 +480,6 @@ void show_game_menu(World *game) {
 
         drawGameMenu(game);
         int *readController = read_snes(gpio);
-        printf("dfdfsdfsdf %d", game->game_menu.game_menu_option);
         if (*(readController + 4) == 0)  // up
         {
             if (game->game_menu.game_menu_option == 1) {
@@ -425,7 +497,6 @@ void show_game_menu(World *game) {
         {
             if (game->game_menu.game_menu_option == 2) {
                 game->game_over = true;
-                printf("fdsfsdfdsdfs");
                 drawBackground();
                 game->game_menu.on_gameMenu_menu = false;
             }
