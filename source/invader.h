@@ -52,13 +52,6 @@ typedef struct { float x, y; } Velocity;
 
 typedef struct { float width, height; } Dimension;
 
-typedef struct {
-    float damage;
-    float range;
-    long cool_down;
-    long last_attack;
-} Weapon;
-
 typedef union { int current_health; } Health;
 
 typedef enum { PLAYER = 1, PAWN = 2, KNIGHT = 3, QUEEN = 4, BUNKER = 5 } Type;
@@ -68,12 +61,10 @@ typedef struct {
     Position previous_pos;
     Velocity velocity;
     Dimension dimension;
-    Weapon weapon;
     bool needs_update;
     bool needs_render;
     bool needs_clear;
     bool active;
-    bool enabled;
 } Missile;
 
 /* ship, alien, bunker */
@@ -88,8 +79,8 @@ typedef struct {
     bool needs_update;
     bool needs_render;
     bool needs_clear;
-    bool enabled;
     bool combat_update;
+    bool enabled;
 } Entity;
 
 typedef struct map {
@@ -123,8 +114,6 @@ void init_player(Entity *player);
 void init_enemies(World *world);
 void init_bunkers(Entity bunkers[]);
 
-bool intersect_AABB(Weapon laser, Entity enemy);
-
 void *updateWorld(void *arg);
 void *updateRender(void *arg);
 void *clearRender(void *arg);
@@ -139,7 +128,6 @@ void update_AI_system(World *world);
 
 Missile *create_bullet(Entity owner);
 void create_projectile();
-void delete_bullet(Missile *bullet);
 void move_bullet(Missile *projectile, Direction direction);
 bool intersectAABB(Missile *projectile, Entity *entity);
 void resolve_collisions(Missile *projectile, Entity *entity);

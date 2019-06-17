@@ -160,11 +160,8 @@ Missile *create_bullet(Entity owner) {
     bullet->needs_update = true;
     bullet->needs_render = true;
     bullet->active = true;
-    bullet->enabled = true;
     return bullet;
 }
-
-void delete_bullet(Missile *bullet) { free(bullet); }
 
 void move_bullet(Missile *projectile, Direction direction) {
     switch (direction) {
@@ -275,9 +272,8 @@ void poll_input(World *world) {
 
 void update_AI_system(World *world) {
     /* vertical reset */
-    for (int i = 0; i < NUM_ENEMIES; i++) {
+    for (int i = 0; i < NUM_ENEMIES; i++)
         move_entity(&world->enemies[i], RESET_VERTICAL);
-    }
 
     /* check wall collisions */
     for (int i = 0; i < 6; i++) {
