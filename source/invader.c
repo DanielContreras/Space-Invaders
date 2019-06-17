@@ -36,6 +36,7 @@ void init_player(Entity *player) {
     player->type = PLAYER;
     player->needs_update = true;
     player->needs_render = false;
+    player->combat_update = false;
 }
 
 void init_enemies(World *world) {
@@ -90,6 +91,8 @@ void init_enemies(World *world) {
         }
         world->enemies[i].needs_render = false;
         world->enemies[i].needs_update = true;
+        world->enemies[i].enabled = true;
+        world->enemies[i].combat_update = false;
     }
 
     for (int i = 0; i < 6; i++) {
@@ -102,12 +105,14 @@ void init_bunkers(Entity bunkers[]) {
     for (int i = 0; i < NUM_BUNKERS; i++) {
         bunkers[i].position.x = LEFT_MAX + (190 * (i + 1)) + (120 * i);
         bunkers[i].position.y = (MAP_HEIGHT)-262;
+        bunkers[i].health.current_health = BUNKER_HEALTH;
         bunkers[i].dimension.height = bunker_1.height;
         bunkers[i].dimension.width = bunker_1.width;
         bunkers[i].health.current_health = BUNKER_HEALTH;
         bunkers[i].type = BUNKER;
         bunkers[i].needs_update = true;
         bunkers[i].needs_render = false;
+        bunkers[i].combat_update = false;
     }
 }
 
@@ -154,8 +159,6 @@ Missile *create_bullet(Entity owner) {
     bullet->dimension.width = red_laser.width;
     bullet->needs_update = true;
     bullet->needs_render = true;
-    bullet->weapon.cool_down = 3;
-    bullet->weapon.damage = 1;
     bullet->active = true;
     bullet->enabled = true;
     return bullet;
@@ -195,8 +198,9 @@ void entity_shoot(Entity *entity, Direction direction) {
 void *updateWorld(void *arg) {
     while (1) {
         update_AI_system(arg);
-        update_movement_system(arg);
         update_collision_system(arg);
+        update_combat_system(arg);
+        update_movement_system(arg);
         delay(42);
     }
     return NULL;
@@ -250,6 +254,7 @@ void update_movement_system(World *world) {
             } else {
                 world->player.projectile[i].needs_render = false;
                 world->player.projectile[i].active = false;
+                world->player.projectile[i].needs_clear = true;
             }
         }
     }
@@ -302,6 +307,49 @@ void update_AI_system(World *world) {
     }
 }
 
-void update_combat_system(World *world) {}
+void update_collision_system(World *world) {
+    Entity *player = &world->player;
+    Entity *enemy = world->enemies;
+    for (int i = 0; i < MAX_BULLETS; i++) {
+        if (player->projectile[i].active) {
+            for (int j = 0; j < NUM_ENEMIES; j++)
+                resolve_collisions(&player->projectile[i], &enemy[j]);
+        }
+    }
+}
 
-void update_collision_system(World *world) {}
+void resolve_collisions(Missile *projectile, Entity *entity) {
+    bool isEnabled = entity->enabled;
+    bool intersects = intersectAABB(projectile, entity);
+    if (isEnabled && intersects) {
+        projectile->active = false;
+        projectile->needs_update = false;
+        projectile->needs_render = false;
+        projectile->needs_clear = true;
+        entity->combat_update = true;
+    }
+}
+
+bool intersectAABB(Missile *projectile, Entity *entity) {
+    return projectile->position.x <
+               (entity->position.x + entity->dimension.width) &&
+           (projectile->position.x + projectile->dimension.width) >
+               entity->position.x &&
+           projectile->position.y <
+               (entity->position.y + entity->dimension.height) &&
+           (projectile->position.y + projectile->dimension.height) >
+               entity->position.y;
+}
+
+void update_combat_system(World *world) {
+    for (int i = 0; i < NUM_ENEMIES; i++) {
+        if (world->enemies[i].combat_update) {
+            world->enemies[i].health.current_health -= 1;
+            if (world->enemies[i].health.current_health <= 0) {
+                world->enemies[i].enabled = false;
+                world->enemies[i].needs_clear = true;
+            }
+            world->enemies[i].combat_update = false;
+        }
+    }
+}

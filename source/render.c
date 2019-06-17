@@ -17,10 +17,13 @@ void render(World *world) {
         ;
 
     for (int i = 0; i < NUM_ENEMIES; i++) {
-        if (world->enemies[i].needs_render) {
+        if (world->enemies[i].needs_render && world->enemies[i].enabled) {
             clear(world->enemies[i]);
             draw(world->enemies[i]);
             world->enemies[i].needs_render = false;
+        } else if (world->enemies[i].needs_clear) {
+            clear(world->enemies[i]);
+            world->enemies[i].needs_clear = false;
         }
     }
 
@@ -34,25 +37,30 @@ void render(World *world) {
         if (world->bunkers[i].needs_render) {
             clear(world->bunkers[i]);
             draw(world->bunkers[i]);
-            // world->bunkers[i].needs_render = false;
         }
     }
 
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (world->player.projectile[i].needs_render) {
-            clear_projectile(&world->player.projectile[i]);
-            draw_projectile(&world->player.projectile[i]);
+            clear_projectile(world->player.projectile[i].previous_pos,
+                             world->player.projectile[i].dimension);
+            draw_projectile(world->player.projectile[i].position,
+                            world->player.projectile[i].dimension);
+        } else if (world->player.projectile[i].needs_clear) {
+            clear_projectile(world->player.projectile[i].position,
+                             world->player.projectile[i].dimension);
+            world->player.projectile[i].needs_clear = false;
         }
     }
 }
 
-void clear_projectile(Missile *projectile) {
-    int width = projectile->dimension.width;
-    int height = projectile->dimension.height;
+void clear_projectile(Position position, Dimension dimension) {
+    int width = dimension.width;
+    int height = dimension.height;
 
-    int x = projectile->previous_pos.x;
+    int x = position.x;
     int oldX = x;
-    int y = projectile->previous_pos.y;
+    int y = position.y;
 
     for (int i = 0; i < (width * height); i++) {
         x++;
@@ -64,16 +72,16 @@ void clear_projectile(Missile *projectile) {
     }
 }
 
-void draw_projectile(Missile *projectile) {
+void draw_projectile(Position position, Dimension dimension) {
     int *colorptr;
-    int width = projectile->dimension.width;
-    int height = projectile->dimension.height;
+    int width = dimension.width;
+    int height = dimension.height;
 
     colorptr = (int *)red_laser.image_pixels;
 
-    int x = projectile->position.x;
+    int x = position.x;
     int oldX = x;
-    int y = projectile->position.y;
+    int y = position.y;
 
     for (int i = 0; i < (width * height); i++) {
         x++;

@@ -22,8 +22,8 @@ void draw(Entity entity);
 void clear(Entity entity);
 void renderer(Entity *entity);
 
-void clear_projectile(Missile *projectile);
-void draw_projectile(Missile *projectile);
+void clear_projectile(Position position, Dimension dimension);
+void draw_projectile(Position position, Dimension dimension);
 
 #endif
 

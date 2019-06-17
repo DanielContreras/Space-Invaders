@@ -71,6 +71,7 @@ typedef struct {
     Weapon weapon;
     bool needs_update;
     bool needs_render;
+    bool needs_clear;
     bool active;
     bool enabled;
 } Missile;
@@ -86,6 +87,9 @@ typedef struct {
     Type type;
     bool needs_update;
     bool needs_render;
+    bool needs_clear;
+    bool enabled;
+    bool combat_update;
 } Entity;
 
 typedef struct map {
@@ -137,6 +141,8 @@ Missile *create_bullet(Entity owner);
 void create_projectile();
 void delete_bullet(Missile *bullet);
 void move_bullet(Missile *projectile, Direction direction);
+bool intersectAABB(Missile *projectile, Entity *entity);
+void resolve_collisions(Missile *projectile, Entity *entity);
 
 void poll_input(World *world);
 
