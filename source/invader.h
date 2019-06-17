@@ -21,7 +21,7 @@
 #define QUEEN_HEALTH 15
 
 #define NUM_BUNKERS 3
-#define BUNKER_HEALTH 50
+#define BUNKER_HEALTH 25
 
 #define alien_initial_y 162
 #define alien_initial_x 675

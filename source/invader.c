@@ -118,6 +118,7 @@ void init_bunkers(Entity bunkers[]) {
         bunkers[i].dimension.width = bunker_1.width;
         bunkers[i].health.current_health = BUNKER_HEALTH;
         bunkers[i].type = BUNKER;
+        bunkers[i].enabled = true;
         bunkers[i].needs_update = true;
         bunkers[i].needs_render = false;
         bunkers[i].combat_update = false;
@@ -311,15 +312,20 @@ void update_AI_system(World *world) {
             move_entity(&world->enemies[i], LEFT);
         }
     }
+
+    /* enemy shooting */
 }
 
 void update_collision_system(World *world) {
     Entity *player = &world->player;
     Entity *enemy = world->enemies;
+    Entity *bunker = world->bunkers;
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (player->projectile[i].active) {
             for (int j = 0; j < NUM_ENEMIES; j++)
                 resolve_collisions(&player->projectile[i], &enemy[j]);
+            for (int k = 0; k < NUM_BUNKERS; k++)
+                resolve_collisions(&player->projectile[i], &bunker[k]);
         }
     }
 }
@@ -333,6 +339,7 @@ void resolve_collisions(Missile *projectile, Entity *entity) {
         projectile->needs_render = false;
         projectile->needs_clear = true;
         entity->combat_update = true;
+        printf("%d\n", entity->type);
     }
 }
 
@@ -358,6 +365,17 @@ void update_combat_system(World *world) {
                 update_score(world, world->enemies[i].type);
             }
             world->enemies[i].combat_update = false;
+        }
+    }
+
+    for (int i = 0; i < NUM_BUNKERS; i++) {
+        if (world->bunkers[i].combat_update) {
+            world->bunkers[i].health.current_health -= 1;
+            if (world->bunkers[i].health.current_health <= 0) {
+                world->bunkers[i].enabled = false;
+                world->bunkers[i].needs_clear = true;
+            }
+            world->bunkers[i].combat_update = false;
         }
     }
 }
