@@ -8,6 +8,16 @@
 #include "images.h"
 #include "invader.h"
 
+#define SCORE_ORIGINX 1600
+#define SCORE_ORIGINY 20
+#define SHIFT 32
+
+#define BAR_ORIGINX 1400
+#define BAR_ORIGINY 30
+
+void clearScore1(Score score);
+void drawScore1(Score score);
+
 void init_framebuffer() { framebufferstruct = initFbInfo(); }
 
 void render(World *world) {
@@ -44,6 +54,42 @@ void render(World *world) {
             draw_projectile(&world->player.projectile[i]);
         }
     }
+
+
+    	if (world->playerScore.needsRender) {
+            int ones = (world->playerScore.score % 10);
+            int tens = (world->playerScore.score % 100)/10;
+            int hundreds = (world->playerScore.score % 1000)/100; 
+            int thousands=(world->playerScore.score % 10000)/1000;
+            
+            clearScore(thousands, SCORE_ORIGINX, SCORE_ORIGINY);
+            clearScore(hundreds, SCORE_ORIGINX + SHIFT, SCORE_ORIGINY);
+            clearScore(tens, SCORE_ORIGINX + SHIFT + SHIFT, SCORE_ORIGINY);
+            clearScore(ones, SCORE_ORIGINX + SHIFT + SHIFT + SHIFT, SCORE_ORIGINY);
+            
+            drawScore(thousands, SCORE_ORIGINX, SCORE_ORIGINY);
+            drawScore(hundreds, SCORE_ORIGINX + SHIFT, SCORE_ORIGINY);
+            drawScore(tens, SCORE_ORIGINX + SHIFT + SHIFT, SCORE_ORIGINY);
+            drawScore(ones, SCORE_ORIGINX + SHIFT + SHIFT + SHIFT, SCORE_ORIGINY);
+            
+            world -> playerScore.needsRender = true; 
+	}
+	
+	if(world-> life.needs_render) {
+	    int w;
+	    //int chealth = 3;
+	    int chealth = (world->life.health.player_health);
+	    if (chealth == 5) {w = 150;}
+	    else if (chealth == 4) {w = 120;}
+	    else if (chealth == 3) {w = 90;}
+	    else if (chealth == 2) {w = 60;}
+	    else if (chealth == 1) {w = 30;}
+	    else if (chealth == 1) {w = 0;}
+	    clearBar(chealth, BAR_ORIGINX, BAR_ORIGINY, w); 
+	    drawBar(chealth, BAR_ORIGINX, BAR_ORIGINY, w);
+	    world -> life.needs_render = false;
+	    
+	}
 }
 
 void clear_projectile(Missile *projectile) {
@@ -143,104 +189,107 @@ void clear(Entity entity) {
     }
 }
 
-void drawMainMenu(Game *game){
-    int *colorptrMenu;
-    int widthMenu = main_menu_quit.width;
-    int heightMenu = main_menu_quit.height;
-    
-    if ((game->main_menu.game_start_menu)) colorptrMenu = (int*) main_menu_start.image_pixels;
-    else colorptrMenu = (int*) main_menu_quit.image_pixels;
-
-    int xMenu = (int) ((MAP_WIDTH / 2) -  (widthMenu/2));
-    int yMenu = TOP_MAX+LOGO.height;
+void drawScore(int num, int value1, int value2)
+{
+    int *colorptr; 
+    int width = 32;
+    int height = 51;
     
     
-    for (int i = 0; i < (widthMenu * heightMenu); i++) {
-	    xMenu++;
-	    if (i % widthMenu == 0) {
-	        yMenu++;
-	        xMenu = (int) ((MAP_WIDTH / 2) -  (widthMenu/2));
-	    }
-	    drawPixel(xMenu, yMenu, colorptrMenu[i]);
-    }
-    drawAuthors();
-}
-
-void drawAuthors(){
-    int *colorptrNames;
-    int widthNames = authors.width;
-    int heightNames = authors.height;
-    colorptrNames = (int*) authors.image_pixels;
-
-    int xMenu = (int) ((MAP_WIDTH / 2) -  (widthNames/2));
-    int yMenu = TOP_MAX+LOGO.height+main_menu_quit.height;
+    if (num == 1) colorptr = (int*) ONE_IMAGE.image_pixels;
+    else if (num == 2) colorptr = (int*) TWO_IMAGE.image_pixels;
+    else if (num == 3) colorptr = (int*) THREE_IMAGE.image_pixels;
+    else if (num == 4) colorptr = (int*) FOUR_IMAGE.image_pixels;
+    else if (num == 5) colorptr = (int*) FIVE_IMAGE.image_pixels;
+    else if (num == 6) colorptr = (int*) SIX_IMAGE.image_pixels;
+    else if (num == 7) colorptr = (int*) SEVEN_IMAGE.image_pixels;
+    else if (num == 8) colorptr = (int*) EIGHT_IMAGE.image_pixels;
+    else if (num == 9) colorptr = (int*) NINE_IMAGE.image_pixels;
+    else if (num == 0) colorptr = (int*) ZERO_IMAGE.image_pixels;
+  
+  
+ 
+    int x = value1;
+    int y = value2;
+    int oldX = x;
+   
     
-    
-    for (int i = 0; i < (widthNames * heightNames); i++) {
-	    xMenu++;
-	    if (i % widthNames == 0) {
-	        yMenu++;
-	        xMenu = (int) ((MAP_WIDTH / 2) -  (widthNames/2));
-	    }
-	    drawPixel(xMenu, yMenu, colorptrNames[i]);
-    }
-}
-
-void drawLogo(){
-    int *colorptrLogo = (int*) LOGO.image_pixels;
-    int widthLogo = LOGO.width;
-    int heightLogo = LOGO.height;
-    
-    int xLogo = (int)((MAP_WIDTH / 2) - (widthLogo/2));
-    int yLogo = TOP_MAX;
-    
-     for (int i = 0; i < (widthLogo * heightLogo); i++) {
-	    xLogo++;
-	    if (i % widthLogo == 0) {
-	        yLogo++;
-	        xLogo = (int)((MAP_WIDTH / 2) -  (widthLogo/2));
-	    }
-	    drawPixel(xLogo, yLogo, colorptrLogo[i]);
-    }
-    
-}
-
-void drawBackground(){
-	
-	int width = RIGHT_MAX - LEFT_MAX;
-	int height = BOTTOM_MAX - TOP_MAX +60;
-	int x = LEFT_MAX;
-	int y = TOP_MAX;
-	 for (int i = 0; i < (width * height); i++) {
+    for (int i = 0; i < (width * height); i++) {
 	    x++;
 	    if (i % width == 0) {
 	        y++;
-	        x = LEFT_MAX;
+	        x = oldX;
+	    }
+	    drawPixel(x, y, colorptr[i]);
+    }
+    
+
+}
+
+void clearScore(int entity, int value1, int value2)
+{
+    int width = 32;
+    int height = 51;
+    
+    int x = value1;
+    int y = value2;
+    int oldX = x;
+    
+    for (int i = 0; i < (width * height); i++) {
+	    x++;
+	    if (i % width == 0) {
+	        y++;
+	        x = oldX;
 	    }
 	    clearPixel(x, y);
     }
 }
 
-void drawGameMenu(World *game)
+void drawBar(int health, int x, int y, int w)
 {
-    int *colorptrMenu;
-    int widthMenu = game_menu_pause.width;
-    int heightMenu = game_menu_pause.height;
-    if ((game->game_menu.game_menu_option == 0)) colorptrMenu = (int*) game_menu_pause.image_pixels;
-    else if ((game->game_menu.game_menu_option == 1)) colorptrMenu = (int*) game_menu_restart.image_pixels;
-    else colorptrMenu = (int*) game_menu_quit.image_pixels;
+    int *colorptr;
+    int width = w;
+    int height = 33;
+    
+    
+    if (health == 5) colorptr = (int*) LIFE100.image_pixels;
+    else if (health == 4) colorptr = (int*) LIFE80.image_pixels;
+    else if (health == 3) colorptr = (int*) LIFE60.image_pixels;
+    else if (health == 2) colorptr = (int*) LIFE40.image_pixels;
+    else if (health == 1) colorptr = (int*) LIFE20.image_pixels;
+    
 
-    int xMenu = (int) ((MAP_WIDTH / 2) -  (widthMenu/2));
-    int yMenu = TOP_MAX;
-        
-    for (int i = 0; i < (widthMenu * heightMenu); i++) {
-	    xMenu++;
-	    if (i % widthMenu == 0) {
-	        yMenu++;
-	        xMenu = (int) ((MAP_WIDTH / 2) -  (widthMenu/2));
+
+    int oldX = x;
+   
+    
+    for (int i = 0; i < (width * height); i++) {
+	    x++;
+	    if (i % width == 0) {
+	        y++;
+	        x = oldX;
 	    }
-	    drawPixel(xMenu, yMenu, colorptrMenu[i]);
+	    drawPixel(x, y, colorptr[i]);
     }
+    
+    
+    
 }
 
 
+void clearBar(int health, int x, int y, int w)
+{
+    int width = w;
+    int height = 33;
+    
+    int oldX = x;
+    
+    for (int i = 0; i < (width * height); i++) {
+	    x++;
+	    if (i % width == 0) {
+	        y++;
+	        x = oldX;
+	    }
+	    clearPixel(x, y);
+    }
+}

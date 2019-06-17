@@ -59,9 +59,15 @@ typedef struct {
     long last_attack;
 } Weapon;
 
-typedef union { int current_health; } Health;
+typedef union { int current_health; int player_health} Health;
 
 typedef enum { PLAYER = 1, PAWN = 2, KNIGHT = 3, QUEEN = 4, BUNKER = 5 } Type;
+
+typedef struct {
+    int score;
+    bool needsUpdate;
+    bool needsRender;
+} Score; 
 
 typedef struct {
     Position position;
@@ -86,20 +92,8 @@ typedef struct {
     Type type;
     bool needs_update;
     bool needs_render;
+    bool alive;
 } Entity;
-
-typedef struct 
-{
-    int game_menu_option;
-    bool on_gameMenu_menu;
-} GameMenu;
-
-typedef struct 
-{
-    bool game_start_menu;
-    bool on_game_menu;
-} MainMenu;
-
 
 typedef struct map {
     Entity player;
@@ -107,16 +101,17 @@ typedef struct map {
     Entity enemies[NUM_ENEMIES];
     int left_most_enemies[6];
     int right_most_enemies[6];
-    bool game_over;
-    GameMenu game_menu; 
+    Score playerScore;
+    Entity life;
 } World;
+
+
+
 
 typedef struct {
     World world;
     bool game_win;
     bool game_over;
-    bool game_start;
-    MainMenu main_menu;
 } Game;
 
 typedef enum {

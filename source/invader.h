@@ -52,9 +52,18 @@ typedef struct { float x, y; } Velocity;
 
 typedef struct { float width, height; } Dimension;
 
-typedef union { int current_health; } Health;
+typedef union {
+    int current_health;
+    int player_health;
+} Health;
 
 typedef enum { PLAYER = 1, PAWN = 2, KNIGHT = 3, QUEEN = 4, BUNKER = 5 } Type;
+
+typedef struct {
+    int score;
+    bool needsUpdate;
+    bool needsRender;
+} Score;
 
 typedef struct {
     Position position;
@@ -100,6 +109,8 @@ typedef struct map {
     int left_most_enemies[6];
     int right_most_enemies[6];
     bool game_over;
+    Score playerScore;
+    Entity life;
     GameMenu game_menu;
 } World;
 
@@ -148,5 +159,15 @@ void resolve_collisions(Missile *projectile, Entity *entity);
 
 void poll_input(World *world);
 void show_main_menu(Game *world);
+void show_game_menu(World *game);
+
+void init_playerScore(Score *playerScore);
+void init_life(Entity *life);
+void killed_Pawn(World *world);
+void killed_Knight(World *world);
+void killed_Queen(World *world);
+void update_lifebar(World *world);
+
+void update_score(World *world, Type type);
 
 #endif  // INVADER_H

@@ -31,5 +31,10 @@ void drawLogo();
 void drawBackground();
 void drawGameMenu(World *game);
 
+void drawScore(int num, int value1, int value2);
+void clearScore(int entity, int value1, int value2);
+void drawBar(int health, int x, int y, int w);
+void clearBar(int health, int x, int y, int w);
+
 #endif
 

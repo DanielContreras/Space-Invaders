@@ -30,6 +30,8 @@ void init_map(World *world) {
     world->game_menu.on_gameMenu_menu = false;
     world->game_over = false;
     init_bunkers(world->bunkers);
+    init_playerScore(&world->playerScore);
+    init_life(&world->life);
 }
 
 void init_player(Entity *player) {
@@ -203,6 +205,7 @@ void *updateWorld(void *arg) {
         update_AI_system(arg);
         update_collision_system(arg);
         update_combat_system(arg);
+        update_lifebar(arg);  // ADDED
         update_movement_system(arg);
         delay(42);
     }
@@ -267,7 +270,7 @@ void poll_input(World *world) {
     int *input = read_snes(gpio);
 
     if (!*(input + 0)) entity_shoot(&world->player, UP);
-    if (!*(input + 3)) show_game_menu(&world);
+    if (!*(input + 3)) show_game_menu(world);
     if (!*(input + 6)) move_entity(&world->player, LEFT);
     if (!*(input + 7)) move_entity(&world->player, RIGHT);
     if (!*(input + 8)) entity_shoot(&world->player, UP);
@@ -351,6 +354,8 @@ void update_combat_system(World *world) {
             if (world->enemies[i].health.current_health <= 0) {
                 world->enemies[i].enabled = false;
                 world->enemies[i].needs_clear = true;
+                world->playerScore.needsRender = true;
+                update_score(world, world->enemies[i].type);
             }
             world->enemies[i].combat_update = false;
         }
@@ -381,10 +386,10 @@ void show_main_menu(Game *game) {
         }
     }
 }
+
 clock_t menu_timer = 0;
 void show_game_menu(World *game) {
     game->game_menu.game_menu_option = 0;
-    // printf("%d\n", game->game_menu.game_menu_option);
     game->game_menu.on_gameMenu_menu = true;
     while (game->game_menu.on_gameMenu_menu) {
         while (clock() < menu_timer)
@@ -416,6 +421,33 @@ void show_game_menu(World *game) {
                 game->game_menu.on_gameMenu_menu = false;
             }
         }
+    }
+}
+
+void init_playerScore(Score *playerScore) {
+    playerScore->score = 0;
+    playerScore->needsUpdate = false;
+    playerScore->needsRender = true;
+}
+
+void init_life(Entity *life) {
+    life->health.player_health = PLAYER_HEALTH;
+    life->needs_update = false;
+    life->needs_render = true;
+}
+
+void update_score(World *world, Type type) {
+    if (type == PAWN) world->playerScore.score += PAWN_POINTS;
+    if (type == KNIGHT) world->playerScore.score += KNIGHT_POINTS;
+    if (type == QUEEN) world->playerScore.score += QUEEN_POINTS;
+}
+
+void update_lifebar(World *world) {
+    bool healthDecrease = true;
+    if (healthDecrease == true) {
+        world->life.needs_update = true;
+        // world->life.health.player_health = 4;
+        world->life.needs_render = true;
     }
 }
 

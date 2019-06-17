@@ -8,6 +8,13 @@
 #include "images.h"
 #include "invader.h"
 
+#define SCORE_ORIGINX 1600
+#define SCORE_ORIGINY 20
+#define SHIFT 32
+
+#define BAR_ORIGINX 1400
+#define BAR_ORIGINY 30
+
 void init_framebuffer() { framebufferstruct = initFbInfo(); }
 
 void render(World *world) {
@@ -51,6 +58,47 @@ void render(World *world) {
                              world->player.projectile[i].dimension);
             world->player.projectile[i].needs_clear = false;
         }
+    }
+
+    if (world->playerScore.needsRender) {
+        int ones = (world->playerScore.score % 10);
+        int tens = (world->playerScore.score % 100) / 10;
+        int hundreds = (world->playerScore.score % 1000) / 100;
+        int thousands = (world->playerScore.score % 10000) / 1000;
+
+        clearScore(thousands, SCORE_ORIGINX, SCORE_ORIGINY);
+        clearScore(hundreds, SCORE_ORIGINX + SHIFT, SCORE_ORIGINY);
+        clearScore(tens, SCORE_ORIGINX + SHIFT + SHIFT, SCORE_ORIGINY);
+        clearScore(ones, SCORE_ORIGINX + SHIFT + SHIFT + SHIFT, SCORE_ORIGINY);
+
+        drawScore(thousands, SCORE_ORIGINX, SCORE_ORIGINY);
+        drawScore(hundreds, SCORE_ORIGINX + SHIFT, SCORE_ORIGINY);
+        drawScore(tens, SCORE_ORIGINX + SHIFT + SHIFT, SCORE_ORIGINY);
+        drawScore(ones, SCORE_ORIGINX + SHIFT + SHIFT + SHIFT, SCORE_ORIGINY);
+
+        world->playerScore.needsRender = false;
+    }
+
+    if (world->life.needs_render) {
+        int w;
+        // int chealth = 3;
+        int chealth = (world->life.health.player_health);
+        if (chealth == 5) {
+            w = 150;
+        } else if (chealth == 4) {
+            w = 120;
+        } else if (chealth == 3) {
+            w = 90;
+        } else if (chealth == 2) {
+            w = 60;
+        } else if (chealth == 1) {
+            w = 30;
+        } else if (chealth == 1) {
+            w = 0;
+        }
+        clearBar(chealth, BAR_ORIGINX, BAR_ORIGINY, w);
+        drawBar(chealth, BAR_ORIGINX, BAR_ORIGINY, w);
+        world->life.needs_render = false;
     }
 }
 
@@ -248,5 +296,107 @@ void drawGameMenu(World *game) {
             xMenu = (int)((MAP_WIDTH / 2) - (widthMenu / 2));
         }
         drawPixel(xMenu, yMenu, colorptrMenu[i]);
+    }
+}
+
+void drawScore(int num, int value1, int value2) {
+    int *colorptr;
+    int width = 32;
+    int height = 51;
+
+    if (num == 1)
+        colorptr = (int *)ONE_IMAGE.image_pixels;
+    else if (num == 2)
+        colorptr = (int *)TWO_IMAGE.image_pixels;
+    else if (num == 3)
+        colorptr = (int *)THREE_IMAGE.image_pixels;
+    else if (num == 4)
+        colorptr = (int *)FOUR_IMAGE.image_pixels;
+    else if (num == 5)
+        colorptr = (int *)FIVE_IMAGE.image_pixels;
+    else if (num == 6)
+        colorptr = (int *)SIX_IMAGE.image_pixels;
+    else if (num == 7)
+        colorptr = (int *)SEVEN_IMAGE.image_pixels;
+    else if (num == 8)
+        colorptr = (int *)EIGHT_IMAGE.image_pixels;
+    else if (num == 9)
+        colorptr = (int *)NINE_IMAGE.image_pixels;
+    else if (num == 0)
+        colorptr = (int *)ZERO_IMAGE.image_pixels;
+
+    int x = value1;
+    int y = value2;
+    int oldX = x;
+
+    for (int i = 0; i < (width * height); i++) {
+        x++;
+        if (i % width == 0) {
+            y++;
+            x = oldX;
+        }
+        drawPixel(x, y, colorptr[i]);
+    }
+}
+
+void clearScore(int entity, int value1, int value2) {
+    int width = 32;
+    int height = 51;
+
+    int x = value1;
+    int y = value2;
+    int oldX = x;
+
+    for (int i = 0; i < (width * height); i++) {
+        x++;
+        if (i % width == 0) {
+            y++;
+            x = oldX;
+        }
+        clearPixel(x, y);
+    }
+}
+
+void drawBar(int health, int x, int y, int w) {
+    int *colorptr;
+    int width = w;
+    int height = 33;
+
+    if (health == 5)
+        colorptr = (int *)LIFE100.image_pixels;
+    else if (health == 4)
+        colorptr = (int *)LIFE80.image_pixels;
+    else if (health == 3)
+        colorptr = (int *)LIFE60.image_pixels;
+    else if (health == 2)
+        colorptr = (int *)LIFE40.image_pixels;
+    else if (health == 1)
+        colorptr = (int *)LIFE20.image_pixels;
+
+    int oldX = x;
+
+    for (int i = 0; i < (width * height); i++) {
+        x++;
+        if (i % width == 0) {
+            y++;
+            x = oldX;
+        }
+        drawPixel(x, y, colorptr[i]);
+    }
+}
+
+void clearBar(int health, int x, int y, int w) {
+    int width = w;
+    int height = 33;
+
+    int oldX = x;
+
+    for (int i = 0; i < (width * height); i++) {
+        x++;
+        if (i % width == 0) {
+            y++;
+            x = oldX;
+        }
+        clearPixel(x, y);
     }
 }
