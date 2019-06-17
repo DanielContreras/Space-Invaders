@@ -41,9 +41,12 @@ void render(World *world) {
     }
 
     for (int i = 0; i < NUM_BUNKERS; i++) {
-        if (world->bunkers[i].needs_render) {
+        if (world->bunkers[i].needs_render && world->bunkers[i].enabled) {
             clear(world->bunkers[i]);
             draw(world->bunkers[i]);
+        } else if (world->bunkers[i].needs_clear) {
+            clear(world->bunkers[i]);
+            world->bunkers[i].needs_clear = false;
         }
     }
 

@@ -120,7 +120,7 @@ void init_bunkers(Entity bunkers[]) {
         bunkers[i].type = BUNKER;
         bunkers[i].enabled = true;
         bunkers[i].needs_update = true;
-        bunkers[i].needs_render = false;
+        bunkers[i].needs_render = true;
         bunkers[i].combat_update = false;
     }
 }
