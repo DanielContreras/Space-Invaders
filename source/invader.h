@@ -83,18 +83,32 @@ typedef struct {
     bool enabled;
 } Entity;
 
+typedef struct {
+    int game_menu_option;
+    bool on_gameMenu_menu;
+} GameMenu;
+
+typedef struct {
+    bool game_start_menu;
+    bool on_game_menu;
+} MainMenu;
+
 typedef struct map {
     Entity player;
     Entity bunkers[NUM_BUNKERS];
     Entity enemies[NUM_ENEMIES];
     int left_most_enemies[6];
     int right_most_enemies[6];
+    bool game_over;
+    GameMenu game_menu;
 } World;
 
 typedef struct {
     World world;
     bool game_win;
     bool game_over;
+    bool game_start;
+    MainMenu main_menu;
 } Game;
 
 typedef enum {
@@ -133,5 +147,6 @@ bool intersectAABB(Missile *projectile, Entity *entity);
 void resolve_collisions(Missile *projectile, Entity *entity);
 
 void poll_input(World *world);
+void show_main_menu(Game *world);
 
 #endif  // INVADER_H

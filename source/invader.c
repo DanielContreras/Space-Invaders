@@ -17,12 +17,18 @@ void init_game(Game *world) {
     init_framebuffer();
     gpio = gpioPtr();
     world->game_over = false;
+    world->game_start = false;
+    world->main_menu.on_game_menu = true;
+    world->main_menu.game_start_menu = true;
     world->game_win = false;
 }
 
 void init_map(World *world) {
     init_player(&world->player);
     init_enemies(world);
+    world->game_menu.game_menu_option = 0;
+    world->game_menu.on_gameMenu_menu = false;
+    world->game_over = false;
     init_bunkers(world->bunkers);
 }
 
@@ -261,6 +267,7 @@ void poll_input(World *world) {
     int *input = read_snes(gpio);
 
     if (!*(input + 0)) entity_shoot(&world->player, UP);
+    if (!*(input + 3)) show_game_menu(&world);
     if (!*(input + 6)) move_entity(&world->player, LEFT);
     if (!*(input + 7)) move_entity(&world->player, RIGHT);
     if (!*(input + 8)) entity_shoot(&world->player, UP);
@@ -349,3 +356,66 @@ void update_combat_system(World *world) {
         }
     }
 }
+
+void show_main_menu(Game *game) {
+    drawBackground();
+    drawLogo();
+    drawMainMenu(game);
+    while (game->main_menu.on_game_menu) {
+        int *readController = read_snes(gpio);
+        if (*(readController + 4) == 0) {
+            game->main_menu.game_start_menu = true;
+            drawMainMenu(game);
+        } else if (*(readController + 5) == 0) {
+            game->main_menu.game_start_menu = false;
+            drawMainMenu(game);
+        }
+
+        else if (*(readController + 8) == 0) {
+            game->main_menu.on_game_menu = false;
+            if (game->main_menu.game_start_menu)
+                game->game_start = true;
+            else
+                game->game_start = false;
+            drawBackground();
+        }
+    }
+}
+clock_t menu_timer = 0;
+void show_game_menu(World *game) {
+    game->game_menu.game_menu_option = 0;
+    // printf("%d\n", game->game_menu.game_menu_option);
+    game->game_menu.on_gameMenu_menu = true;
+    while (game->game_menu.on_gameMenu_menu) {
+        while (clock() < menu_timer)
+            ;
+        menu_timer = clock() + CLOCKS_PER_SEC / 4;
+
+        drawGameMenu(game);
+        int *readController = read_snes(gpio);
+        printf("dfdfsdfsdf %d", game->game_menu.game_menu_option);
+        if (*(readController + 4) == 0)  // up
+        {
+            if (game->game_menu.game_menu_option == 1) {
+                game->game_menu.game_menu_option = 0;
+            } else if (game->game_menu.game_menu_option == 2) {
+                game->game_menu.game_menu_option = 1;
+            }
+        } else if (*(readController + 5) == 0)  // down
+        {
+            if (game->game_menu.game_menu_option == 0)
+                game->game_menu.game_menu_option = 1;
+            else if (game->game_menu.game_menu_option == 1)
+                game->game_menu.game_menu_option = 2;
+        } else if (*(readController + 8) == 0)  // B
+        {
+            if (game->game_menu.game_menu_option == 2) {
+                game->game_over = true;
+                printf("fdsfsdfdsdfs");
+                drawBackground();
+                game->game_menu.on_gameMenu_menu = false;
+            }
+        }
+    }
+}
+
