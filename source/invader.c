@@ -113,6 +113,7 @@ void init_bunkers(Entity bunkers[]) {
     for (int i = 0; i < NUM_BUNKERS; i++) {
         bunkers[i].position.x = LEFT_MAX + (190 * (i + 1)) + (120 * i);
         bunkers[i].position.y = (MAP_HEIGHT)-262;
+        bunkers[i].previous_pos = bunkers[i].position;
         bunkers[i].health.current_health = BUNKER_HEALTH;
         bunkers[i].dimension.height = bunker_1.height;
         bunkers[i].dimension.width = bunker_1.width;
@@ -226,16 +227,6 @@ void update_movement_system(World *world) {
         world->player.position.x += world->player.velocity.x;
         world->player.needs_render = true;
         world->player.needs_update = false;
-    }
-
-    for (int i = 0; i < NUM_BUNKERS; i++) {
-        if (world->bunkers[i].needs_update) {
-            world->bunkers[i].previous_pos = world->bunkers[i].position;
-            world->bunkers[i].position.x += world->bunkers[i].velocity.x;
-            world->bunkers[i].position.y += world->bunkers[i].velocity.y;
-            world->bunkers[i].needs_render = true;
-            world->bunkers[i].needs_update = false;
-        }
     }
 
     for (int i = 0; i < NUM_ENEMIES; i++) {
