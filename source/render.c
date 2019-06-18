@@ -34,10 +34,13 @@ void render(World *world) {
         }
     }
 
-    if (world->player.needs_render) {
+    if (world->player.needs_render && world->player.enabled) {
         clear(world->player);
         draw(world->player);
         world->player.needs_render = false;
+    } else if (world->player.needs_clear) {
+        clear(world->player);
+        world->player.needs_clear = false;
     }
 
     for (int i = 0; i < NUM_BUNKERS; i++) {
@@ -51,10 +54,11 @@ void render(World *world) {
     }
 
     for (int i = 0; i < MAX_BULLETS; i++) {
+        Type type = world->player.type;
         if (world->player.projectile[i].needs_render) {
             clear_projectile(world->player.projectile[i].previous_pos,
                              world->player.projectile[i].dimension);
-            draw_projectile(world->player.projectile[i].position,
+            draw_projectile(type, world->player.projectile[i].position,
                             world->player.projectile[i].dimension);
         } else if (world->player.projectile[i].needs_clear) {
             clear_projectile(world->player.projectile[i].position,
@@ -63,17 +67,21 @@ void render(World *world) {
         }
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < MAX_SHOOTERS; i++) {
         for (int j = 0; j < MAX_BULLETS; j++) {
-            if (world->enemies[i].projectile[j].needs_render) {
-                clear_projectile(world->enemies[i].projectile[j].previous_pos,
-                                 world->enemies[i].projectile[j].dimension);
-                draw_projectile(world->enemies[i].projectile[j].position,
-                                world->enemies[i].projectile[j].dimension);
-            } else if (world->enemies[i].projectile[j].needs_clear) {
-                clear_projectile(world->enemies[i].projectile[j].position,
-                                 world->enemies[i].projectile[j].dimension);
-                world->enemies[i].projectile[j].needs_clear = false;
+            int index = world->shooters[i];
+            Type type = world->enemies[index].type;
+            if (world->enemies[index].projectile[j].needs_render) {
+                clear_projectile(
+                    world->enemies[index].projectile[j].previous_pos,
+                    world->enemies[index].projectile[j].dimension);
+                draw_projectile(type,
+                                world->enemies[index].projectile[j].position,
+                                world->enemies[index].projectile[j].dimension);
+            } else if (world->enemies[index].projectile[j].needs_clear) {
+                clear_projectile(world->enemies[index].projectile[j].position,
+                                 world->enemies[index].projectile[j].dimension);
+                world->enemies[index].projectile[j].needs_clear = false;
             }
         }
     }
@@ -99,8 +107,7 @@ void render(World *world) {
 
     if (world->life.needs_render) {
         int w;
-        // int chealth = 3;
-        int chealth = (world->life.health.player_health);
+        int chealth = (world->player.health.current_health);
         if (chealth == 5) {
             w = 150;
         } else if (chealth == 4) {
@@ -111,7 +118,7 @@ void render(World *world) {
             w = 60;
         } else if (chealth == 1) {
             w = 30;
-        } else if (chealth == 1) {
+        } else if (chealth == 0) {
             w = 0;
         }
         clearBar(chealth, BAR_ORIGINX, BAR_ORIGINY, w);
@@ -138,12 +145,15 @@ void clear_projectile(Position position, Dimension dimension) {
     }
 }
 
-void draw_projectile(Position position, Dimension dimension) {
+void draw_projectile(Type type, Position position, Dimension dimension) {
     int *colorptr;
     int width = dimension.width;
     int height = dimension.height;
 
-    colorptr = (int *)red_laser.image_pixels;
+    if (type != PLAYER)
+        colorptr = (int *)green_laser.image_pixels;
+    else
+        colorptr = (int *)red_laser.image_pixels;
 
     int x = position.x;
     int oldX = x;
@@ -297,9 +307,9 @@ void drawGameMenu(World *game) {
     int *colorptrMenu;
     int widthMenu = game_menu_pause.width;
     int heightMenu = game_menu_pause.height;
-    if ((game->game_menu.game_menu_option == 0))
+    if (game->game_menu.game_menu_option == 0)
         colorptrMenu = (int *)game_menu_pause.image_pixels;
-    else if ((game->game_menu.game_menu_option == 1))
+    else if (game->game_menu.game_menu_option == 1)
         colorptrMenu = (int *)game_menu_restart.image_pixels;
     else
         colorptrMenu = (int *)game_menu_quit.image_pixels;
@@ -404,7 +414,7 @@ void drawBar(int health, int x, int y, int w) {
 }
 
 void clearBar(int health, int x, int y, int w) {
-    int width = w;
+    int width = 150;
     int height = 33;
 
     int oldX = x;

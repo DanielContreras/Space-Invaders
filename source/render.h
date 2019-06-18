@@ -23,7 +23,7 @@ void clear(Entity entity);
 void renderer(Entity *entity);
 
 void clear_projectile(Position position, Dimension dimension);
-void draw_projectile(Position position, Dimension dimension);
+void draw_projectile(Type type, Position position, Dimension dimension);
 
 void drawMainMenu(Game *game);
 void drawAuthors();

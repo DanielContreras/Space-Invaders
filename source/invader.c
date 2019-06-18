@@ -44,7 +44,9 @@ void init_player(Entity *player) {
     player->type = PLAYER;
     player->needs_update = true;
     player->needs_render = false;
+    player->needs_clear = false;
     player->combat_update = false;
+    player->enabled = true;
 }
 
 void init_enemies(World *world) {
@@ -110,7 +112,7 @@ void init_enemies(World *world) {
         world->right_most_enemies[i] = 10 * i + 9;
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < MAX_SHOOTERS; i++) {
         world->shooters[i] = i;
     }
 }
@@ -195,26 +197,10 @@ void move_bullet(Missile *projectile, Direction direction) {
     }
 }
 
-clock_t start = 0;
 void entity_shoot(Entity *entity, Direction direction) {
-    if (clock() < start) return;
+    if (clock() < entity->timer) return;
 
-    start = clock() + CLOCKS_PER_SEC / 2;
-
-    for (int i = 0; i < MAX_BULLETS; i++) {
-        if (!entity->projectile[i].active) {
-            entity->projectile[i] = *create_bullet(*entity);
-            move_bullet(&entity->projectile[i], direction);
-            return;
-        }
-    }
-}
-
-clock_t start1 = 0;
-void entity_shoot1(Entity *entity, Direction direction) {
-    if (clock() < start1) return;
-
-    start = clock() + CLOCKS_PER_SEC / 2;
+    entity->timer = clock() + CLOCKS_PER_SEC / 2;
 
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (!entity->projectile[i].active) {
@@ -230,7 +216,6 @@ void *updateWorld(void *arg) {
         update_AI_system(arg);
         update_collision_system(arg);
         update_combat_system(arg);
-        update_lifebar(arg);  // ADDED
         update_movement_system(arg);
         delay(42);
     }
@@ -294,7 +279,8 @@ void update_movement_system(World *world) {
         }
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int index = 0; index < 10; index++) {
+        int i = world->shooters[index];
         for (int j = 0; j < MAX_BULLETS; j++) {
             if (world->enemies[i].projectile[j].needs_update) {
                 if (world->enemies[i].projectile[j].position.y < BOTTOM_MAX) {
@@ -329,7 +315,6 @@ void poll_input(World *world) {
     free(input);
 }
 
-clock_t before = 0;
 void update_AI_system(World *world) {
     /* vertical reset */
     for (int i = 0; i < NUM_ENEMIES; i++)
@@ -363,12 +348,13 @@ void update_AI_system(World *world) {
     }
 }
 
+clock_t before = 0;
 void enemy_shoot(World *world) {
-    /* enemy shooting */
     if (clock() < before) return;
-    before = clock() + CLOCKS_PER_SEC;
+    before = clock() + CLOCKS_PER_SEC / 2;
 
-    entity_shoot1(&world->enemies[0], DOWN);
+    int random = rand() % 10;
+    entity_shoot(&world->enemies[world->shooters[random]], DOWN);
 }
 
 void update_collision_system(World *world) {
@@ -385,11 +371,12 @@ void update_collision_system(World *world) {
     }
 
     for (int i = 0; i < 10; i++) {
+        int index = world->shooters[i];
         for (int j = 0; j < MAX_BULLETS; j++) {
-            if (enemy[i].projectile[j].active) {
-                resolve_collisions(&enemy[i].projectile[j], player);
+            if (enemy[index].projectile[j].active) {
+                resolve_collisions(&enemy[index].projectile[j], player);
                 for (int k = 0; k < NUM_BUNKERS; k++)
-                    resolve_collisions(&enemy[i].projectile[i], &bunker[k]);
+                    resolve_collisions(&enemy[index].projectile[i], &bunker[k]);
             }
         }
     }
@@ -427,6 +414,7 @@ void update_combat_system(World *world) {
                 world->enemies[i].needs_clear = true;
                 world->playerScore.needsRender = true;
                 update_score(world, world->enemies[i].type);
+                update_shooters(world, i);
             }
             world->enemies[i].combat_update = false;
         }
@@ -440,6 +428,24 @@ void update_combat_system(World *world) {
                 world->bunkers[i].needs_clear = true;
             }
             world->bunkers[i].combat_update = false;
+        }
+    }
+
+    if (world->player.combat_update) {
+        world->life.needs_render = true;
+        world->player.health.current_health -= 1;
+        if (world->player.health.current_health <= 0) {
+            world->player.enabled = false;
+            world->player.needs_clear = true;
+        }
+        world->player.combat_update = false;
+    }
+}
+
+void update_shooters(World *world, int index) {
+    for (int i = 0; i < MAX_SHOOTERS; i++) {
+        if (world->shooters[i] == index) {
+            world->shooters[i] += 10;
         }
     }
 }
@@ -523,10 +529,7 @@ void update_score(World *world, Type type) {
 }
 
 void update_lifebar(World *world) {
-    bool healthDecrease = true;
-    if (healthDecrease == true) {
-        world->life.needs_update = true;
-        // world->life.health.player_health = 4;
+    if (world->life.needs_update) {
         world->life.needs_render = true;
     }
 }

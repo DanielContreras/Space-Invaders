@@ -2,6 +2,7 @@
 #define INVADER_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define DAMAGE 1
 
@@ -36,6 +37,7 @@
 
 #define NUM_ENEMIES (NUM_PAWNS + NUM_KNIGHTS + NUM_QUEENS)
 #define NUM_ENTITIES (NUM_ENEMIES + NUM_BUNKERS + 1)
+#define MAX_SHOOTERS 10
 
 #define MAX_BULLETS 10
 #define BULLET_VELOCITY 15
@@ -85,6 +87,7 @@ typedef struct {
     Health health;
     Missile projectile[MAX_BULLETS];
     Type type;
+    clock_t timer;
     bool needs_update;
     bool needs_render;
     bool needs_clear;
@@ -106,7 +109,7 @@ typedef struct map {
     Entity player;
     Entity bunkers[NUM_BUNKERS];
     Entity enemies[NUM_ENEMIES];
-    int shooters[10];
+    int shooters[MAX_SHOOTERS];
     int left_most_enemies[6];
     int right_most_enemies[6];
     bool game_over;
@@ -147,7 +150,6 @@ void *updateAI(void *arg);
 void *updateInput(void *arg);
 
 void enemy_shoot(World *world);
-void entity_shoot1(Entity *entity, Direction direction);
 
 void move_entity(Entity *player, Direction direction);
 void entity_shoot(Entity *player, Direction direction);
@@ -156,6 +158,7 @@ void update_movement_system(World *world);
 void update_combat_system(World *world);
 void update_collision_system(World *world);
 void update_AI_system(World *world);
+void update_shooters(World *world, int index);
 
 Missile *create_bullet(Entity owner);
 void create_projectile();
