@@ -53,3 +53,5 @@ dkms.conf
 
 *.sh
 *.swp
+*.exe
+myProg
