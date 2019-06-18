@@ -269,16 +269,6 @@ void *updateInput(void *arg) {
 
 void update_movement_system(World *world) {
     if (world->player.needs_update) {
-        // if (!at_left_bound(world->player)) {
-        //    world->player.previous_pos = world->player.position;
-        //    world->player.position.x += 1;
-        //} else if (!at_right_bound(world->player)) {
-        //    world->player.previous_pos = world->player.position;
-        //    world->player.position.x -= 1;
-        //} else {
-        //    world->player.previous_pos = world->player.position;
-        //    world->player.position.x += world->player.velocity.x;
-        //}
         world->player.previous_pos = world->player.position;
         world->player.position.x += world->player.velocity.x;
         world->player.needs_render = true;
@@ -496,6 +486,9 @@ void update_combat_system(World *world) {
                 world->enemies_alive -= 1;
             }
             world->enemies[i].combat_update = false;
+            if (world->enemies_alive == 0) {
+                endScreen(1);
+            }
         }
     }
 
@@ -518,6 +511,9 @@ void update_combat_system(World *world) {
             world->player.needs_clear = true;
         }
         world->player.combat_update = false;
+        if (world->player.health.current_health == 0) {
+            endScreen(0);
+        }
     }
 }
 
@@ -621,13 +617,14 @@ void show_game_menu(World *world) {
     return;
 }
 
-void EndScreen(bool won){
+void endScreen(bool won){
     pauseGame = true;
     drawBackground();
     gameEndDisplay(won);
-    delay(200);
+    delay(500);
     int *readController = read_snes(gpio);
     while(!restartGame){
+        delay(200);
         int *readController = read_snes(gpio);
         for (int i = 0; i<=12; i++){
             if (*(readController + i) == 0){

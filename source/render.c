@@ -8,13 +8,6 @@
 #include "images.h"
 #include "invader.h"
 
-#define SCORE_ORIGINX 1600
-#define SCORE_ORIGINY 20
-#define SHIFT 32
-
-#define BAR_ORIGINX 1400
-#define BAR_ORIGINY 30
-
 void init_framebuffer() { framebufferstruct = initFbInfo(); }
 
 void render(World *world) {

@@ -5,6 +5,7 @@
 #include <wiringPi.h>
 #include "invader.h"
 
+/* polls for input */
 void *getInput(void* args){
     while (!quitGame) {
         poll_input(&((Game*)args)->world);
@@ -20,8 +21,8 @@ int main() {
         pthread_create(&input_t, NULL, getInput, &game);
         while (!quitGame) {
             restart_game(&game);
-            pthread_t animation_t, logic_t, input_t;
-            pthread_create(&logic_t, NULL, updateWorld, &game);
+            pthread_t animation_t, logic_t, input_t;            
+            pthread_create(&logic_t, NULL, updateWorld, &game);     
             pthread_create(&ai_t, NULL, updateAI, &game);
             pthread_create(&animation_t, NULL, updateRender, &game);
             
@@ -33,9 +34,3 @@ int main() {
     }
     return 0;
 }
-
-
-
-
-
-
