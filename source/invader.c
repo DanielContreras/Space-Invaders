@@ -32,6 +32,7 @@ void init_map(World *world) {
     init_bunkers(world->bunkers);
     init_playerScore(&world->playerScore);
     init_life(&world->life);
+    world->enemies_alive = NUM_ENEMIES;
 }
 
 void init_player(Entity *player) {
@@ -245,6 +246,16 @@ void *updateInput(void *arg) {
 
 void update_movement_system(World *world) {
     if (world->player.needs_update) {
+        // if (!at_left_bound(world->player)) {
+        //    world->player.previous_pos = world->player.position;
+        //    world->player.position.x += 1;
+        //} else if (!at_right_bound(world->player)) {
+        //    world->player.previous_pos = world->player.position;
+        //    world->player.position.x -= 1;
+        //} else {
+        //    world->player.previous_pos = world->player.position;
+        //    world->player.position.x += world->player.velocity.x;
+        //}
         world->player.previous_pos = world->player.position;
         world->player.position.x += world->player.velocity.x;
         world->player.needs_render = true;
@@ -315,6 +326,43 @@ void poll_input(World *world) {
     free(input);
 }
 
+bool enemies_at_bottom(World *world) {
+    int bottom_most = 0;
+    for (int i = 0; i < 10; i++) {
+        if (world->enemies[bottom_most].position.y <
+            world->enemies[i].position.y) {
+            bottom_most = world->shooters[i];
+        }
+    }
+    return (world->enemies[bottom_most].position.y +
+            world->enemies[bottom_most].dimension.height) >
+           ENEMIES_VERTICAL_MAX;
+}
+
+bool enemies_at_right_bound(World *world) {
+    int right_most = 0;
+    for (int i = 0; i < 6; i++) {
+        if (world->enemies[world->right_most_enemies[i]].position.x >
+            world->enemies[world->right_most_enemies[right_most]].position.x) {
+            right_most = world->right_most_enemies[i];
+        }
+    }
+    return (world->enemies[world->right_most_enemies[right_most]].position.x +
+            world->enemies[world->right_most_enemies[right_most]]
+                .dimension.width) > RIGHT_MAX;
+}
+
+bool at_vertical_bound(Entity entity) {
+    return ((entity.position.x <= LEFT_MAX ||
+             entity.position.x + entity.dimension.width >= RIGHT_MAX));
+}
+
+bool at_left_bound(Entity entity) { return (entity.position.x <= LEFT_MAX); }
+
+bool at_right_bound(Entity entity) {
+    return entity.position.x + entity.dimension.width >= RIGHT_MAX;
+}
+
 void update_AI_system(World *world) {
     /* vertical reset */
     for (int i = 0; i < NUM_ENEMIES; i++)
@@ -326,14 +374,18 @@ void update_AI_system(World *world) {
              world->enemies[world->right_most_enemies[i]].dimension.width) >=
             (RIGHT_MAX)) {
             travel_right = false;
-            for (int j = 0; j < NUM_ENEMIES; j++) {
-                move_entity(&world->enemies[j], DOWN);
+            if (!enemies_at_bottom(world)) {
+                for (int j = 0; j < NUM_ENEMIES; j++) {
+                    move_entity(&world->enemies[j], DOWN);
+                }
             }
         } else if ((world->enemies[world->left_most_enemies[i]].position.x) <=
                    (LEFT_MAX)) {
             travel_right = true;
-            for (int j = 0; j < NUM_ENEMIES; j++) {
-                move_entity(&world->enemies[j], DOWN);
+            if (!enemies_at_bottom(world)) {
+                for (int j = 0; j < NUM_ENEMIES; j++) {
+                    move_entity(&world->enemies[j], DOWN);
+                }
             }
         }
     }
@@ -361,6 +413,7 @@ void update_collision_system(World *world) {
     Entity *player = &world->player;
     Entity *enemy = world->enemies;
     Entity *bunker = world->bunkers;
+
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (player->projectile[i].active) {
             for (int j = 0; j < NUM_ENEMIES; j++)
@@ -376,7 +429,7 @@ void update_collision_system(World *world) {
             if (enemy[index].projectile[j].active) {
                 resolve_collisions(&enemy[index].projectile[j], player);
                 for (int k = 0; k < NUM_BUNKERS; k++)
-                    resolve_collisions(&enemy[index].projectile[i], &bunker[k]);
+                    resolve_collisions(&enemy[index].projectile[j], &bunker[k]);
             }
         }
     }
@@ -415,6 +468,9 @@ void update_combat_system(World *world) {
                 world->playerScore.needsRender = true;
                 update_score(world, world->enemies[i].type);
                 update_shooters(world, i);
+                update_left_most(world, i);
+                update_right_most(world, i);
+                world->enemies_alive -= 1;
             }
             world->enemies[i].combat_update = false;
         }
@@ -446,6 +502,22 @@ void update_shooters(World *world, int index) {
     for (int i = 0; i < MAX_SHOOTERS; i++) {
         if (world->shooters[i] == index) {
             world->shooters[i] += 10;
+        }
+    }
+}
+
+void update_left_most(World *world, int index) {
+    for (int i = 0; i < 6; i++) {
+        if (world->left_most_enemies[i] == index) {
+            world->left_most_enemies[i] += 1;
+        }
+    }
+}
+
+void update_right_most(World *world, int index) {
+    for (int i = 0; i < 6; i++) {
+        if (world->left_most_enemies[i] == index) {
+            world->left_most_enemies[i] -= 1;
         }
     }
 }

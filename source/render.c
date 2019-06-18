@@ -184,6 +184,10 @@ void draw(Entity entity) {
     int width = entity.dimension.width;
     int height = entity.dimension.height;
 
+    int x = entity.position.x;
+    int oldX = x;
+    int y = entity.position.y;
+
     if (entity.type == PAWN)
         colorptr = (int *)pawn_sprite.image_pixels;
     else if (entity.type == KNIGHT)
@@ -192,12 +196,21 @@ void draw(Entity entity) {
         colorptr = (int *)queen_sprite.image_pixels;
     else if (entity.type == PLAYER)
         colorptr = (int *)blue_ship_sprite.image_pixels;
-    else if (entity.type == BUNKER)
-        colorptr = (int *)bunker_1.image_pixels;
-
-    int x = entity.position.x;
-    int oldX = x;
-    int y = entity.position.y;
+    else if (entity.type == BUNKER) {
+        if (entity.health.current_health <= BUNKER_HEALTH / 3) {
+            colorptr = (int *)bunker_3.image_pixels;
+            width = bunker_3.width;
+            height = bunker_3.height;
+        } else if (entity.health.current_health <= BUNKER_HEALTH / 2) {
+            colorptr = (int *)bunker_2.image_pixels;
+            width = bunker_2.width;
+            height = bunker_2.height;
+        } else {
+            colorptr = (int *)bunker_1.image_pixels;
+            width = bunker_1.width;
+            height = bunker_1.height;
+        }
+    }
 
     for (int i = 0; i < (width * height); i++) {
         x++;
