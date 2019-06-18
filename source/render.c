@@ -441,3 +441,26 @@ void clearBar(int health, int x, int y, int w) {
         clearPixel(x, y);
     }
 }
+
+void gameEndDisplay(bool win)
+{   
+    int *colorptr;
+    int width = game_win_logo.width;
+    int height = game_win_logo.height;
+    if(win)
+	colorptr = (int*) game_win_logo.image_pixels;
+    else 
+	colorptr = (int*) game_loss_logo.image_pixels;
+    int x = (int)((MAP_WIDTH / 2) - (width/2));
+    int y = TOP_MAX;
+    
+     for (int i = 0; i < (width * height); i++) {
+	    x++;
+	    if (i % width == 0) {
+	        y++;
+	        x = (int)((MAP_WIDTH / 2) -  (width/2));
+	    }
+	    drawPixel(x, y, colorptr[i]);
+    }
+    
+}

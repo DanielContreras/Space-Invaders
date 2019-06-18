@@ -48,6 +48,9 @@
 
 static bool travel_right = true;
 unsigned int *gpio;
+bool quitGame;
+bool restartGame;
+bool pauseGame;
 
 typedef struct { float x, y; } Position;
 
