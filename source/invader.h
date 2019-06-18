@@ -109,6 +109,7 @@ typedef struct {
     bool on_game_menu;
 } MainMenu;
 
+/* struct containing all data present on the map */
 typedef struct map {
     Entity player;
     Entity bunkers[NUM_BUNKERS];
@@ -141,58 +142,300 @@ typedef enum {
     RESET_HORIZONTAL
 } Direction;
 
+/**
+ * Initializes all the game elements such as the map
+ * and flags
+ * 
+ * @param   *world      A pointer to world that contains all data for
+ *                      the game data
+ */
 void init_game(Game *world);
+
+/**
+ * Initializes all the entities on the map
+ * 
+ * @param   *world      A pointer to world that contains all data for
+ *                      the game data
+ */
 void init_map(World *world);
 
+/**
+ * Initializes the player entities default struct-member values
+ * 
+ * @param   *player     A pointer to the player entity to initialize
+ */
 void init_player(Entity *player);
+
+/**
+ * Initializes the enemy entities default struct-member
+ * values; Will initialize pawns, knights and queens
+ * 
+ * @param   *world      A pointer to world that contains all data for
+ *                      the game data
+ */
 void init_enemies(World *world);
+
+/**
+ * Initializes the bunker entities default struct-member
+ * values
+ * 
+ * @param   *bunkers    A pointer to the bunkers array that contains all
+ *                      the data for each bunker
+ */
 void init_bunkers(Entity bunkers[]);
 
+/**
+ * Updates the state of the world until the game is paused or
+ * has ended. This function runs on its own thread
+ * 
+ * @param   *arg        A pointer to a void argument; required by the
+ *                      POSIX thread; passed in as a reference to the 
+ *                      world
+ */
 void *updateWorld(void *arg);
+
+/**
+ * Updates the render state of the world. This function  
+ * runs asynchronously to the updateWord thread
+ * 
+ * @param   *arg        A pointer to a void argument; required by the
+ *                      POSIX thread; passed in as a reference to the 
+ *                      world
+ */
 void *updateRender(void *arg);
-void *clearRender(void *arg);
+
+/**
+ * Updates the AI state of the world. This function runs
+ * asynchrounously to updateWorld and updateRender
+ * 
+ * @param   *arg        A pointer to a void argument; required by the
+ *                      POSIX thread; passed in as a reference to the 
+ *                      world
+ */
 void *updateAI(void *arg);
+
+/**
+ * Updates the input state of the world. Runs asynchronously to
+ * undateWorld and updateRender
+ * 
+ * @param   *arg        A pointer to a void argument; required by the
+ *                      POSIX thread; passed in as a reference to the 
+ *                      world
+ */
 void *updateInput(void *arg);
 
+/**
+ * Script that is run by the updateAI thread. This function forces
+ * a projectile to be shot from the enemy. This function calls
+ * entity_shoot to cause a projectile to be shot at a given direction
+ * 
+ * @see     entity_shoot
+ * @param   *world      A pointer to world that contains all data for
+ *                      the game data
+ */
 void enemy_shoot(World *world);
 
-void move_entity(Entity *player, Direction direction);
-void entity_shoot(Entity *player, Direction direction);
+/**
+ * Moves the specified entity, player or enemy, in a given direction
+ * 
+ * @param   *entity     A pointer to the entity to move
+ * @param   *direction  A specified direction to move the entity
+ */
+void move_entity(Entity *entity, Direction direction);
 
+/**
+ * Causes an entity to shoot in a given direction
+ * 
+ * @param   *entity     A pointer to the entity who is shooting
+ * @param   *direction  A specified direction to move the projectile
+ */
+void entity_shoot(Entity *entity, Direction direction);
+
+/**
+ * This function updates all entities positions such that when
+ * the render update occurs, the entity moves to their new location
+ * 
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_movement_system(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_combat_system(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_collision_system(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_AI_system(World *world);
 
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 Missile *create_bullet(Entity owner);
+
+/**
+ *
+ */
 void create_projectile();
+
+/**
+ *
+ */
 void move_bullet(Missile *projectile, Direction direction);
+
+/**
+ *
+ */
 bool intersectAABB(Missile *projectile, Entity *entity);
+
+/**
+ *
+ */
 void resolve_collisions(Missile *projectile, Entity *entity);
 
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void poll_input(World *world);
+
+/**
+ *
+ */
 void show_main_menu(Game *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void show_game_menu(World *game);
 
+/**
+ *
+ */
 void init_playerScore(Score *playerScore);
+
+/**
+ *
+ */
 void init_life(Entity *life);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void killed_Pawn(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void killed_Knight(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void killed_Queen(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_lifebar(World *world);
 
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ * @param   type
+ */
 void update_score(World *world, Type type);
 
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_left_most(World *world, int index);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_right_most(World *world, int index);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_shooters(World *world, int index);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 void update_bunkers(World *world);
+
+/**
+ *
+ */
 bool at_vertical_bound(Entity entity);
+
+/**
+ *
+ */
 bool at_right_bound(Entity entity);
+
+/**
+ *
+ * @param   entity  A reference to the entity to check
+ */
 bool at_left_bound(Entity entity);
 
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 bool enemies_at_bottom(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 bool enemies_at_left_bound(World *world);
+
+/**
+ *
+ * @param   *world  A pointer to world that contains all data for
+ *                  the game data
+ */
 bool enemies_at_right_bound(World *world);
 
 #endif  // INVADER_H

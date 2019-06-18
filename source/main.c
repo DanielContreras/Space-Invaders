@@ -26,9 +26,9 @@ int main() {
             pthread_create(&animation_t, NULL, updateRender, &game);
             
             pthread_join(logic_t, NULL);
-            pthread_join(ai_t, NULL);
             pthread_join(animation_t, NULL);
         }
+        pthread_join(ai_t, NULL);
         pthread_join(input_t, NULL);
     }
     return 0;

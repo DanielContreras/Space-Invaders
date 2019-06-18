@@ -254,7 +254,7 @@ void *updateRender(void *arg) {
 }
 
 void *updateAI(void *arg) {
-    while (1) {
+    while (!quitGame && !restartGame) {
         enemy_shoot(arg);
         delay(42);
     }
