@@ -143,7 +143,7 @@ typedef enum {
 } Direction;
 
 /**
- * Initializes all the game elements such as the map
+ * Initializes the game and all its defaults states
  * and flags
  * 
  * @param   *world      A pointer to world that contains all data for
@@ -261,181 +261,180 @@ void entity_shoot(Entity *entity, Direction direction);
 void update_movement_system(World *world);
 
 /**
- *
+ * Updates the combat systems for all entities. This function 
+ * appends scores, decreases lives and sets flags for clearing
+ * entities from the screen
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 void update_combat_system(World *world);
 
 /**
- *
+ * Updates the collisions by resolving and checking if any collisions
+ * occured. If they did, the collisions are resolved
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
+ * @see     resolve_collisions function
  */
 void update_collision_system(World *world);
 
 /**
- *
+ * Updates the AI system. This function is responsible for moving the 
+ * enemies and causing them to shoot projectiles
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 void update_AI_system(World *world);
 
 /**
- *
+ * Creates a new projectile and adds it to the entity who triggered
+ * a shoot
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 Missile *create_bullet(Entity owner);
 
 /**
- *
- */
-void create_projectile();
-
-/**
- *
+ * Moves any given projectile in a given direction
+ * 
+ * @param   *projectile The projectile to be moved
+ * @param   direction   The direction to move the projectile
  */
 void move_bullet(Missile *projectile, Direction direction);
 
 /**
- *
+ * Returns true if an collisions are detected by the missile and
+ * enemy
+ * 
+ * @param   *projectile The projectile that is being tested for 
+ *                      collision
+ * @param   *entity     The entity that is being tested against
+ *                      collision
  */
 bool intersectAABB(Missile *projectile, Entity *entity);
 
 /**
- *
+ * Resolves collisions for all entities and all projectiles that
+ * are involved in the collision. This function will ensure that
+ * all projectiles involved in collision are disabled and are 
+ * flagged for a render clear. Entities will be flagged for combat
+ * updates to decrease health or disable (dead)
+ * 
+ * @param   *projectile The projectile to resolve collisions for
+ * @param   *entity     The entity to resolve collisions for
  */
 void resolve_collisions(Missile *projectile, Entity *entity);
 
 /**
- *
+ * Polls inputs from the SNES controller
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 void poll_input(World *world);
 
 /**
- *
+ * Shows the main menu when called. The game is not started until
+ * one start game button is clicked or the quit button is clicked.
+ * Once an option is selected, the main menu will disappear and
+ * trigger the game to begin
+ * 
+ * @param   *world  A pointer to the game that contains the flags 
+ *                  for game state
  */
 void show_main_menu(Game *world);
 
 /**
- *
+ * Shows the game menu. This menu is called when the start button is
+ * clicked and will pause the current game. The player may resume the
+ * current game, restart the game or quit
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 void show_game_menu(World *game);
 
 /**
- *
+ * Initializes the a players score to the default values (0) and
+ * the flags for update and render to their default values
+ * 
+ * @param   *playerScore    A pointer to the struct that contains
+ *                          the data for player score
  */
 void init_playerScore(Score *playerScore);
 
 /**
- *
+ * Initializes the life struct that contains data relevant for the 
+ * life bar
+ * 
+ * @param   *life       A pointer to the life struct
  */
 void init_life(Entity *life);
 
 /**
- *
+ * Updates the player score depending on the enemy type that was 
+ * killed
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
- */
-void killed_Pawn(World *world);
-
-/**
- *
- * @param   *world  A pointer to world that contains all data for
- *                  the game data
- */
-void killed_Knight(World *world);
-
-/**
- *
- * @param   *world  A pointer to world that contains all data for
- *                  the game data
- */
-void killed_Queen(World *world);
-
-/**
- *
- * @param   *world  A pointer to world that contains all data for
- *                  the game data
- */
-void update_lifebar(World *world);
-
-/**
- *
- * @param   *world  A pointer to world that contains all data for
- *                  the game data
- * @param   type
+ * @param   type    Type of the enemy that was killed
  */
 void update_score(World *world, Type type);
 
 /**
- *
+ * Updates an array that contains the left most entities; used for
+ * wall detection of all enemies
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 void update_left_most(World *world, int index);
 
 /**
- *
+ * Updates an array that contains the right most entities; used for
+ * wall detection of all enemies
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 void update_right_most(World *world, int index);
 
 /**
- *
+ * Updates an array that contains the enemies of each respective row
+ * that contains the enemy that is the lowest; used for AI shooting
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 void update_shooters(World *world, int index);
 
 /**
- *
+ * Checks if the entity is at the right bounds of the game map 
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
- */
-void update_bunkers(World *world);
-
-/**
- *
- */
-bool at_vertical_bound(Entity entity);
-
-/**
- *
  */
 bool at_right_bound(Entity entity);
 
 /**
- *
+ * Checks if the entity is at the left bounds of the game map
+ * 
  * @param   entity  A reference to the entity to check
  */
 bool at_left_bound(Entity entity);
 
 /**
- *
+ * Checks if the enemies have reached the bottom of their playable area,
+ * if they have they will no longer move down but will continue to 
+ * move left or right
+ * 
  * @param   *world  A pointer to world that contains all data for
  *                  the game data
  */
 bool enemies_at_bottom(World *world);
-
-/**
- *
- * @param   *world  A pointer to world that contains all data for
- *                  the game data
- */
-bool enemies_at_left_bound(World *world);
-
-/**
- *
- * @param   *world  A pointer to world that contains all data for
- *                  the game data
- */
-bool enemies_at_right_bound(World *world);
 
 #endif  // INVADER_H

@@ -656,10 +656,3 @@ void update_score(World *world, Type type) {
     if (type == KNIGHT) world->playerScore.score += KNIGHT_POINTS;
     if (type == QUEEN) world->playerScore.score += QUEEN_POINTS;
 }
-
-void update_lifebar(World *world) {
-    if (world->life.needs_update) {
-        world->life.needs_render = true;
-    }
-}
-
