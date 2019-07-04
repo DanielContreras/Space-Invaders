@@ -1,0 +1,14 @@
+language:
+  - c
+  - cpp
+  - go
+  - d
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+
+script:
+  - mkdir build
+  - make
