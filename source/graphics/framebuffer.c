@@ -10,7 +10,7 @@
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
-#include "framebuffer.h"
+#include <graphics/framebuffer.h>
 
 struct fbs initFbInfo(void)
 {

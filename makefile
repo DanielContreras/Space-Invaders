@@ -1,34 +1,71 @@
-###############################################################################
-#	makefile
-#	by Mohamad Elzohbi.
-#
-#	A makefile script for building mixed C & Assembly programs RPI3
-###############################################################################
+CXX = gcc
 
+# path #
+SRC_PATH = source
+BUILD_PATH = build
+BIN_PATH = bin
 
-# The intermediate directory for compiled object files.
-BUILD = build/
+# executable # 
+BIN_NAME = myProg
 
-# The directory in which source files are stored.
-SOURCE = source/
+# extensions #
+SRC_EXT = c
 
-# The names of all object files that must be generated. Deduced from the 
-# assembly code files in source.
-OBJECTS := $(patsubst $(SOURCE)%.s,$(BUILD)%.o,$(wildcard $(SOURCE)*.s))
-COBJECTS := $(patsubst $(SOURCE)%.c,$(BUILD)%.o,$(wildcard $(SOURCE)*.c))
+# code lists #
+# Find all source files in the source directory, sorted by
+# most recently modified
+SOURCES = $(shell find $(SRC_PATH) -name '*.$(SRC_EXT)' | sort -k 1nr | cut -f2-)
+# Set the object file names, with the source directory stripped
+# from the path, and the build path prepended in its place
+OBJECTS = $(SOURCES:$(SRC_PATH)/%.$(SRC_EXT)=$(BUILD_PATH)/%.o)
+# Set the dependency files that will be used to add header dependencies
+DEPS = $(OBJECTS:.o=.d)
 
-# Rule to make the executable files.
-myProg: $(OBJECTS) $(COBJECTS)
-	gcc -lwiringPi -pthread -o myProg $(OBJECTS) $(COBJECTS)
+COMPILE_FLAGS = -g -c -O0 -Wall
+INCLUDES = -I include/ -I /usr/local/include 
+# Space-separated pkg-config libraries used by this project
+LIBS = 
 
-# Rule to make the object files.
-$(BUILD)%.o: $(SOURCE)%.s
-	as --gstabs -I $(SOURCE) $< -o $@
+.PHONY: default_target
+default_target: release
 
-$(BUILD)%.o: $(SOURCE)%.c
-	gcc -g -c -O0 -Wall -I $(SOURCE) $< -o $@
+.PHONY: release
+release: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS)
+release: dirs
+	@$(MAKE) all
 
-# Rule to clean files.
-clean : 
-	-rm -f $(BUILD)*.o myProg
+.PHONY: dirs
+dirs:
+	@echo "Creating directories"
+	@mkdir -p $(dir $(OBJECTS))
+	@mkdir -p $(BIN_PATH)
 
+.PHONY: clean
+clean:
+	@echo "Deleting $(BIN_NAME) symlink"
+	@$(RM) $(BIN_NAME)
+	@echo "Deleting directories"
+	@$(RM) -r $(BUILD_PATH)
+	@$(RM) -r $(BIN_PATH)
+
+# checks the executable and symlinks to the output
+.PHONY: all
+all: $(BIN_PATH)/$(BIN_NAME)
+	@echo "Making symlink: $(BIN_NAME) -> $<"
+	@$(RM) $(BIN_NAME)
+	@ln -s $(BIN_PATH)/$(BIN_NAME) $(BIN_NAME)
+
+# Creation of the executable
+$(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
+	@echo "Linking: $@"
+	$(CXX) $(OBJECTS) -lwiringPi -pthread -o $@ 
+
+# Add dependency files, if they exist
+-include $(DEPS)
+
+# Source file rules
+# After the first compilation they will be joined with the rules from the
+# dependency files to provide header dependencies
+$(BUILD_PATH)/%.o: $(SRC_PATH)/%.$(SRC_EXT)
+	@echo "Compiling: $< -> $@"
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -o $@

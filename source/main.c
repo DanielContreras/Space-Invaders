@@ -1,36 +1,45 @@
-#include <pthread.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <time.h>
 #include <wiringPi.h>
-#include "invader.h"
+#include <ECS/ecs.h>
+#include <stdio.h>
 
-/* polls for input */
-void *getInput(void* args){
-    while (!quitGame) {
-        poll_input(&((Game*)args)->world);
-    }
-}
+#define FPS 60
+#define DELAY (1000 / FPS)
+
+int frames, seconds;
+ECS* ecs = NULL;
+
+double ClockToMilliseconds(clock_t ticks);
+void LogFPS();
 
 int main() {
-    Game game;
-    init_game(&game);
-    show_main_menu(&game);
-    if(game.game_start){
-        pthread_t animation_t, logic_t, input_t, ai_t;
-        pthread_create(&input_t, NULL, getInput, &game);
-        while (!quitGame) {
-            restart_game(&game);
-            pthread_t animation_t, logic_t, input_t;            
-            pthread_create(&logic_t, NULL, updateWorld, &game);     
-            pthread_create(&ai_t, NULL, updateAI, &game);
-            pthread_create(&animation_t, NULL, updateRender, &game);
-            
-            pthread_join(logic_t, NULL);
-            pthread_join(animation_t, NULL);
-        }
-        pthread_join(ai_t, NULL);
-        pthread_join(input_t, NULL);
+    clock_t start;
+    int end_time;
+    frames = 0;
+    seconds = millis();
+
+	ecs = InitializeECS();
+
+    while (1) {
+        start = clock();
+        UpdateECS(ecs->engine);
+        end_time = clock() - start;
+        frames++;
+        LogFPS();
+        if ((int)DELAY > end_time) delay(DELAY - end_time);
     }
-    return 0;
+	
+	TerminateECS(ecs);
 }
+
+double ClockToMilliseconds(clock_t ticks) { return (ticks / (double)CLOCKS_PER_SEC) * 1000.0; }
+
+void LogFPS() {
+    if ((long)millis() > seconds + 1000) {
+        printf("Fps: %d\n", frames);
+        frames = 0;
+        seconds = millis();
+    }
+}
+
